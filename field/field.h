@@ -12,6 +12,7 @@ struct _field
     Cell *cells[FIELD_SIZE][FIELD_SIZE];
     int caretx;
     int carety;
+    bool gameover;
 };
 
 struct _cell

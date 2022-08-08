@@ -15,6 +15,7 @@ int init_field(Field *field, unsigned int bombpercentage)
 
     field->caretx = 0;
     field->carety = 0;
+    field->gameover = false;
     int cellamount = FIELD_SIZE * FIELD_SIZE;
     int bombamount = ((float)bombpercentage / (float)100) * cellamount;
     if (bombamount == 0)
@@ -118,15 +119,18 @@ void print_field(const Field *field)
                 {
                     printf("\033[1Df");
                 }
+                if (field->gameover && cell->isbomb)
+                {
+                    printf("\033[1D*");
+                }
             }
             else if (cell->isbomb)
             {
-                printf("BOMB!!!!");
                 printf("*");
             }
             else
             {
-                printf(" ");
+                printf("%c", cell->bombneighbours == 0 ? ' ' : cell->bombneighbours + 48);
             }
             printf("%c", chosen ? ']' : ' ');
         }
@@ -145,6 +149,7 @@ int open_cell(Cell *cell)
     // game-over;
     if (cell->isbomb)
     {
+        cell->isopened = true;
         return 2;
     }
 

@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <conio.h>
 #include "field/field.h"
 #include "input/input.h"
 
@@ -27,6 +28,7 @@ int main(void)
             // game-over
             if (status == 2)
             {
+                myfield.gameover = true;
                 print_field(&myfield);
                 printf("game-over, je opende een bom\n");
                 break;
