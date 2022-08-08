@@ -6,6 +6,8 @@
 
 #include "field.h"
 
+#define ANSI_RESET "\033[m"
+
 int init_field(Field *field, unsigned int bombpercentage)
 {
     if (field == NULL)
@@ -22,18 +24,18 @@ int init_field(Field *field, unsigned int bombpercentage)
     {
         return 0;
     }
+    field->bombamount = bombamount;
 
-    for (int y = 0; y < FIELD_SIZE; y++)
+    for (int i = 0; i < FIELD_SIZE * FIELD_SIZE; i++)
     {
-        for (int x = 0; x < FIELD_SIZE; x++)
-        {
-            Cell *cell = malloc(sizeof(cell));
-            cell->bombneighbours = 0;
-            cell->isbomb = false;
-            cell->isflagged = false;
-            cell->isopened = false;
-            field->cells[y][x] = cell;
-        }
+        int x = i % FIELD_SIZE;
+        int y = i / FIELD_SIZE;
+        Cell *cell = malloc(sizeof(cell));
+        cell->bombneighbours = 0;
+        cell->isbomb = false;
+        cell->isflagged = false;
+        cell->isopened = false;
+        field->cells[y][x] = cell;
     }
 
     time_t t1;
@@ -48,14 +50,6 @@ int init_field(Field *field, unsigned int bombpercentage)
         int randy = rand() % FIELD_SIZE;
 
         Cell *cell = field->cells[randy][randx];
-        // printf(
-        //     "cell-status:\n\t"
-        //     "is-bomb: %d\n\t"
-        //     "is-flagged: %d\n\t"
-        //     "is-opened: %d\n\t"
-        //     "bomb-neighbours: %d\n\t"
-        //     "address: %p\n",
-        //     cell->isbomb, cell->isflagged, cell->isopened, cell->bombneighbours, cell);
 
         if (cell->isbomb)
         {
@@ -105,6 +99,8 @@ int init_field(Field *field, unsigned int bombpercentage)
 
 void print_field(const Field *field)
 {
+    char *ANSI_COLORS[9] = {"\033[0m", "\033[34m", "\033[32m", "\033[31m", "\033[35m", "\033[90m", "\033[36m", "\033[2m", "\033[33m"};
+
     for (int y = 0; y < FIELD_SIZE; y++)
     {
         for (int x = 0; x < FIELD_SIZE; x++)
@@ -117,20 +113,20 @@ void print_field(const Field *field)
                 printf(".");
                 if (cell->isflagged)
                 {
-                    printf("\033[1Df");
+                    printf("\033[1D\033[4m\033[97m\033[101mf" ANSI_RESET);
                 }
                 if (field->gameover && cell->isbomb)
                 {
-                    printf("\033[1D*");
+                    printf("\033[1D\033[30m\033[41m*" ANSI_RESET);
                 }
             }
             else if (cell->isbomb)
             {
-                printf("*");
+                printf("\033[30m\033[41m*" ANSI_RESET);
             }
             else
             {
-                printf("%c", cell->bombneighbours == 0 ? ' ' : cell->bombneighbours + 48);
+                printf("%s%c" ANSI_RESET, ANSI_COLORS[cell->bombneighbours], cell->bombneighbours == 0 ? ' ' : cell->bombneighbours + 48);
             }
             printf("%c", chosen ? ']' : ' ');
         }
@@ -144,13 +140,6 @@ int open_cell(Cell *cell)
     if (cell == NULL || cell->isflagged || cell->isopened)
     {
         return 0;
-    }
-
-    // game-over;
-    if (cell->isbomb)
-    {
-        cell->isopened = true;
-        return 2;
     }
 
     cell->isopened = true;
@@ -167,4 +156,68 @@ int flag_cell(Cell *cell)
 
     cell->isflagged = !cell->isflagged;
     return 1;
+}
+
+void open_neighbour(Field *field, unsigned int x, unsigned int y)
+{
+    if (field == NULL || x >= FIELD_SIZE || y >= FIELD_SIZE || x < 0 || y < 0)
+    {
+        return;
+    }
+
+    // open this one, then recursively open neighbouring cells
+    Cell *curcell = field->cells[y][x];
+    if (curcell->isflagged)
+    {
+        return;
+    }
+    if (curcell->isopened)
+    {
+        return;
+    }
+
+    open_cell(curcell);
+    if (curcell->bombneighbours > 0)
+        return;
+
+    open_neighbour(field, x - 1, y - 1);
+    open_neighbour(field, x, y - 1);
+    open_neighbour(field, x + 1, y - 1);
+    open_neighbour(field, x - 1, y);
+    open_neighbour(field, x + 1, y);
+    open_neighbour(field, x - 1, y + 1);
+    open_neighbour(field, x, y + 1);
+    open_neighbour(field, x + 1, y + 1);
+}
+
+int eval_field(Field *field)
+{
+    for (int y = 0; y < FIELD_SIZE; y++)
+    {
+        for (int x = 0; x < FIELD_SIZE; x++)
+        {
+            Cell *curcell = field->cells[y][x];
+            if (curcell->isbomb && !curcell->isflagged)
+            {
+                return 0;
+            }
+            if (!curcell->isbomb && !curcell->isopened)
+            {
+                return 0;
+            }
+        }
+    }
+
+    return 1;
+}
+
+void open_field(Field *field)
+{
+    for (int y = 0; y < FIELD_SIZE; y++)
+    {
+        for (int x = 0; x < FIELD_SIZE; x++)
+        {
+            field->cells[y][x]->isopened = true;
+        }
+    }
 }

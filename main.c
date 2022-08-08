@@ -7,7 +7,7 @@
 int main(void)
 {
     Field myfield;
-    init_field(&myfield, 40);
+    init_field(&myfield, 10);
 
     int input = 0;
 
@@ -23,26 +23,34 @@ int main(void)
         if (input == 13)
         {
             Cell *curcell = myfield.cells[myfield.carety][myfield.caretx];
-            int status = open_cell(curcell);
+            if (curcell->bombneighbours == 0)
+            {
+                open_neighbour(&myfield, myfield.caretx, myfield.carety);
+            }
+            else
+            {
+                open_cell(curcell);
+            }
 
             // game-over
-            if (status == 2)
+            if (curcell->isbomb && curcell->isopened)
             {
                 myfield.gameover = true;
+                open_field(&myfield);
                 print_field(&myfield);
-                printf("game-over, je opende een bom\n");
+                printf("Game Over!\nJe opende een bom!\n");
                 break;
             }
 
-            continue;
+            goto evaluation;
         }
         // flagging
         if (input == 102)
         {
             Cell *curcell = myfield.cells[myfield.carety][myfield.caretx];
-            int status = flag_cell(curcell);
+            flag_cell(curcell);
 
-            continue;
+            goto evaluation;
         }
 
         // esc code
@@ -90,6 +98,15 @@ int main(void)
             default:
                 printf("%c, %d", arrow, arrow);
             }
+        }
+    evaluation:
+        // evaluate the field at the end of every
+        if (eval_field(&myfield))
+        {
+            open_field(&myfield);
+            print_field(&myfield);
+            printf("Je hebt gewonnen!\n");
+            break;
         }
     }
 
