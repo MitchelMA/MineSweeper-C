@@ -7,7 +7,11 @@
 int main(void)
 {
     Field myfield;
-    init_field(&myfield, 10);
+    if (!init_field(&myfield, 10))
+    {
+        printf("Het lukte niet om het speelveld te initializeren\n");
+        return EXIT_FAILURE;
+    }
 
     int input = 0;
 
@@ -118,5 +122,5 @@ int main(void)
         }
     }
 
-    return 0;
+    return EXIT_SUCCESS;
 }

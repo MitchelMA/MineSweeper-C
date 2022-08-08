@@ -30,6 +30,10 @@ int init_field(Field *field, unsigned int bombpercentage)
         int x = i % FIELD_SIZE;
         int y = i / FIELD_SIZE;
         Cell *cell = malloc(sizeof(cell));
+        if (cell == NULL)
+        {
+            return 0;
+        }
         cell->bombneighbours = 0;
         cell->isbomb = false;
         cell->isflagged = false;
@@ -116,12 +120,12 @@ void print_field(const Field *field)
                 }
                 if (field->gameover && cell->isbomb)
                 {
-                    printf("\033[1D\033[30m\033[41m*" ANSI_RESET);
+                    printf("\033[1D\033[97m\033[41m*" ANSI_RESET);
                 }
             }
             else if (cell->isbomb)
             {
-                printf("\033[30m\033[41m*" ANSI_RESET);
+                printf("\033[97m\033[41m*" ANSI_RESET);
             }
             else
             {
