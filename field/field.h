@@ -12,7 +12,6 @@ struct _field
     Cell *cells[FIELD_SIZE][FIELD_SIZE];
     int caretx;
     int carety;
-    int bombamount;
     bool gameover;
 };
 

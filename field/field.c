@@ -24,7 +24,6 @@ int init_field(Field *field, unsigned int bombpercentage)
     {
         return 0;
     }
-    field->bombamount = bombamount;
 
     for (int i = 0; i < FIELD_SIZE * FIELD_SIZE; i++)
     {
