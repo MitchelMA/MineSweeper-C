@@ -2,7 +2,7 @@
 #define __FIELD_H__
 #include <stdbool.h>
 
-#define FIELD_SIZE 25
+#define FIELD_SIZE 30
 
 typedef struct _field Field;
 typedef struct _cell Cell;

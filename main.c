@@ -110,5 +110,13 @@ int main(void)
         }
     }
 
+    for (int y = 0; y < FIELD_SIZE; y++)
+    {
+        for (int x = 0; x < FIELD_SIZE; x++)
+        {
+            free(myfield.cells[y][x]);
+        }
+    }
+
     return 0;
 }

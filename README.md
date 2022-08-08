@@ -1,5 +1,5 @@
 # Minesweeper
-Mine sweeper geschreven in C. (nog aan het schrijven, eigenlijk)  
+Mine sweeper geschreven in C.  
 
 ## Spelen
 Je bestuurt de cursor met de pijltjes toetsen.  
