@@ -10,9 +10,9 @@ int get_arrow_keys(int *val)
 
     if (ch == 0 || ch == 0xE0)
     {
-        int val = _getch();
+        int arr = _getch();
         fflush(stdin);
-        return val;
+        return arr;
     }
     *val = ch;
     fflush(stdin);

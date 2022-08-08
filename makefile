@@ -1,10 +1,12 @@
 CC := gcc
-CLFALGS := -g -Wall -pedantic
+CFLAGS := -g -Wall -pedantic
 
-OBJS := main.o
+OBJS := main.o \
+input\input.o \
+field\field.o
 
 all: $(OBJS)
-	$(CC) $(CLFALGS) -o main $(OBJS)
+	$(CC) $(CFLAGS) -o main $(OBJS)
 
 $(OBJS): %.o : %.c
 
