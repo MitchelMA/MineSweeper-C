@@ -2,14 +2,9 @@
 Mine sweeper geschreven in C. (nog aan het schrijven, eigenlijk)  
 
 ## Spelen
-Vim input om over het veld te bewegen  
-k: omhoog  
-l: rechts  
-j: omlaag  
-h: links  
+Je bestuurt de cursor met de pijltjes toetsen.  
+Je kan een `cell` *flaggen* met `f` en *openen* met `enter`.  
+Wanneer je het spel wilt verlaten, druk je simpelweg op `esc` of op `q`.  
   
-En druk op 'enter' om een veld te openen.  
-Voor de rest kan je op 'esc' drukken om het spel te beëindigen.
-
 ## Regels
 [https://www.youtube.com/watch?v=dvvrOeITzG8](https://www.youtube.com/watch?v=dvvrOeITzG8)
