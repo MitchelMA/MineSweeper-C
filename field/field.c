@@ -109,10 +109,57 @@ void print_field(const Field *field)
         for (int x = 0; x < FIELD_SIZE; x++)
         {
             bool chosen = x == field->caretx && y == field->carety;
+            Cell *cell = field->cells[y][x];
             printf("%c", chosen ? '[' : ' ');
-            printf(".");
+            if (!cell->isopened)
+            {
+                printf(".");
+                if (cell->isflagged)
+                {
+                    printf("\033[1Df");
+                }
+            }
+            else if (cell->isbomb)
+            {
+                printf("BOMB!!!!");
+                printf("*");
+            }
+            else
+            {
+                printf(" ");
+            }
             printf("%c", chosen ? ']' : ' ');
         }
         printf("\n");
     }
+}
+
+int open_cell(Cell *cell)
+{
+    // situations in which a cell cannot be opened
+    if (cell == NULL || cell->isflagged || cell->isopened)
+    {
+        return 0;
+    }
+
+    // game-over;
+    if (cell->isbomb)
+    {
+        return 2;
+    }
+
+    cell->isopened = true;
+    return 1;
+}
+
+int flag_cell(Cell *cell)
+{
+    // situations in which a cell cannot be flagged
+    if (cell == NULL || cell->isopened)
+    {
+        return 0;
+    }
+
+    cell->isflagged = !cell->isflagged;
+    return 1;
 }

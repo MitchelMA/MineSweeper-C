@@ -25,4 +25,7 @@ struct _cell
 int init_field(Field *field, unsigned int bombpercentage);
 void print_field(const Field *field);
 
+int open_cell(Cell *cell);
+int flag_cell(Cell *cell);
+
 #endif // __FIELD_H__

@@ -21,11 +21,25 @@ int main(void)
         // enter press
         if (input == 13)
         {
+            Cell *curcell = myfield.cells[myfield.carety][myfield.caretx];
+            int status = open_cell(curcell);
+
+            // game-over
+            if (status == 2)
+            {
+                print_field(&myfield);
+                printf("game-over, je opende een bom\n");
+                break;
+            }
+
             continue;
         }
         // flagging
         if (input == 102)
         {
+            Cell *curcell = myfield.cells[myfield.carety][myfield.caretx];
+            int status = flag_cell(curcell);
+
             continue;
         }
 
