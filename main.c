@@ -99,8 +99,6 @@ int main(void)
                     myfield.caretx--;
                 break;
             }
-            default:
-                printf("%c, %d", arrow, arrow);
             }
         }
     evaluation:
