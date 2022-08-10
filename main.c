@@ -48,8 +48,8 @@ int main(int argc, char *argv[])
 #endif // _PRETTY
         int arrow = get_arrow_keys(&input);
 
-        // enter press
-        if (input == 13)
+        // enter or space press
+        if (input == 13 || input == 32)
         {
             Cell *curcell = myfield.cells[myfield.carety][myfield.caretx];
             if (curcell->bombneighbours == 0)
@@ -149,7 +149,9 @@ int main(int argc, char *argv[])
         {
             free(myfield.cells[y][x]);
         }
+        free(myfield.cells[y]);
     }
+    free(myfield.cells);
 
     return EXIT_SUCCESS;
 }

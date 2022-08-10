@@ -5,13 +5,13 @@ OBJS := main.o \
 input\input.o \
 field\field.o
 
-all: CFLAGS := $(CFLAGS) -D_PRETTY=1
+all: CFLAGS += -D_PRETTY=1
 all: $(OBJS) build
+	@echo $(CFLAGS)
 #$(CC) $(CFLAGS) -o minesweeper $(OBJS)
-
-release: CFLAGS := $(CFLAGS) -O3
-release: all
-#$(CC) $(CFLAGS) -o minesweeper $(OBJS)
+release: CFLAGS += -O3 -D_PRETTY=1
+release: $(OBJS) build
+	$(CC) $(CFLAGS) -o minesweeper $(OBJS)
 
 nonansi: $(OBJS) build
 
