@@ -6,7 +6,9 @@
 
 #include "field.h"
 
+#ifdef _PRETTY
 #define ANSI_RESET "\033[m"
+#endif // _PRETTY
 
 int init_field(Field *field, uint32_t fieldsize, uint32_t bombpercentage)
 {
@@ -110,7 +112,9 @@ int init_field(Field *field, uint32_t fieldsize, uint32_t bombpercentage)
 
 void print_field(const Field *field)
 {
+#ifdef _PRETTY
     char *ANSI_COLORS[9] = {"\033[0m", "\033[34m", "\033[32m", "\033[31m", "\033[35m", "\033[90m", "\033[36m", "\033[2m", "\033[33m"};
+#endif // _PRETTY
 
     for (int y = 0; y < field->size; y++)
     {
@@ -119,6 +123,7 @@ void print_field(const Field *field)
             bool chosen = x == field->caretx && y == field->carety;
             Cell *cell = field->cells[y][x];
             printf("%c", chosen ? '[' : ' ');
+#ifdef _PRETTY
             if (!cell->isopened)
             {
                 printf(".");
@@ -139,6 +144,27 @@ void print_field(const Field *field)
             {
                 printf("%s%c" ANSI_RESET, ANSI_COLORS[cell->bombneighbours], cell->bombneighbours == 0 ? ' ' : cell->bombneighbours + 48);
             }
+#else
+            if (cell->isflagged)
+            {
+                printf("f");
+            }
+            else if (cell->isopened)
+            {
+                if (cell->isbomb)
+                {
+                    printf("*");
+                }
+                else
+                {
+                    printf("%c", cell->bombneighbours == 0 ? ' ' : cell->bombneighbours + 48);
+                }
+            }
+            else
+            {
+                printf(".");
+            }
+#endif // _PRETTY
             printf("%c", chosen ? ']' : ' ');
         }
         printf("\n");
