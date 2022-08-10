@@ -8,9 +8,9 @@
 
 #define ANSI_RESET "\033[m"
 
-int init_field(Field *field, unsigned int bombpercentage)
+int init_field(Field *field, uint32_t fieldsize, uint32_t bombpercentage)
 {
-    if (field == NULL)
+    if (field == NULL || fieldsize < 4)
     {
         return 0;
     }
@@ -161,7 +161,7 @@ int flag_cell(Cell *cell)
     return 1;
 }
 
-void open_neighbour(Field *field, unsigned int x, unsigned int y)
+void open_neighbour(Field *field, uint32_t x, uint32_t y)
 {
     if (field == NULL || x >= FIELD_SIZE || y >= FIELD_SIZE || x < 0 || y < 0)
     {

@@ -1,13 +1,29 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <conio.h>
+#include <string.h>
 #include "field/field.h"
 #include "input/input.h"
 
-int main(void)
+int standfieldsize = 30;
+int standbombper = 10;
+
+int main(int argc, char *argv[])
 {
+
+    if (argc > 1)
+    {
+        argv++;
+        standfieldsize = atoi(*argv);
+    }
+    if (argc > 2)
+    {
+        argv++;
+        standbombper = atoi(*argv);
+    }
+
     Field myfield;
-    if (!init_field(&myfield, 10))
+    if (!init_field(&myfield, standfieldsize, standbombper))
     {
         printf("Het lukte niet om het speelveld te initializeren\n");
         return EXIT_FAILURE;
