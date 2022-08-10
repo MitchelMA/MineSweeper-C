@@ -18,17 +18,25 @@ int init_field(Field *field, uint32_t fieldsize, uint32_t bombpercentage)
     field->caretx = 0;
     field->carety = 0;
     field->gameover = false;
-    int cellamount = FIELD_SIZE * FIELD_SIZE;
+    field->size = fieldsize;
+    int cellamount = field->size * field->size;
     int bombamount = ((float)bombpercentage / (float)100) * cellamount;
     if (bombamount == 0)
     {
         return 0;
     }
 
-    for (int i = 0; i < FIELD_SIZE * FIELD_SIZE; i++)
+    // allocate memory for the 2d cells array
+    field->cells = malloc(sizeof(Cell **) * field->size);
+    for (int i = 0; i < field->size; i++)
     {
-        int x = i % FIELD_SIZE;
-        int y = i / FIELD_SIZE;
+        field->cells[i] = malloc(sizeof(Cell *) * field->size);
+    }
+
+    for (int i = 0; i < field->size * field->size; i++)
+    {
+        int x = i % field->size;
+        int y = i / field->size;
         Cell *cell = malloc(sizeof(cell));
         if (cell == NULL)
         {
@@ -49,8 +57,8 @@ int init_field(Field *field, uint32_t fieldsize, uint32_t bombpercentage)
     for (int i = 0; i < bombamount;)
     {
         times++;
-        int randx = rand() % FIELD_SIZE;
-        int randy = rand() % FIELD_SIZE;
+        int randx = rand() % field->size;
+        int randy = rand() % field->size;
 
         Cell *cell = field->cells[randy][randx];
 
@@ -64,7 +72,7 @@ int init_field(Field *field, uint32_t fieldsize, uint32_t bombpercentage)
         {
             field->cells[randy][randx - 1]->bombneighbours++;
         }
-        if (randx < FIELD_SIZE - 1)
+        if (randx < field->size - 1)
         {
             field->cells[randy][randx + 1]->bombneighbours++;
         }
@@ -73,7 +81,7 @@ int init_field(Field *field, uint32_t fieldsize, uint32_t bombpercentage)
         {
             field->cells[randy - 1][randx]->bombneighbours++;
         }
-        if (randy < FIELD_SIZE - 1)
+        if (randy < field->size - 1)
         {
             field->cells[randy + 1][randx]->bombneighbours++;
         }
@@ -82,15 +90,15 @@ int init_field(Field *field, uint32_t fieldsize, uint32_t bombpercentage)
         {
             field->cells[randy - 1][randx - 1]->bombneighbours++;
         }
-        if (randx < FIELD_SIZE - 1 && randy > 0)
+        if (randx < field->size - 1 && randy > 0)
         {
             field->cells[randy - 1][randx + 1]->bombneighbours++;
         }
-        if (randx > 0 && randy < FIELD_SIZE - 1)
+        if (randx > 0 && randy < field->size - 1)
         {
             field->cells[randy + 1][randx - 1]->bombneighbours++;
         }
-        if (randx < FIELD_SIZE - 1 && randy < FIELD_SIZE - 1)
+        if (randx < field->size - 1 && randy < field->size - 1)
         {
             field->cells[randy + 1][randx + 1]->bombneighbours++;
         }
@@ -104,9 +112,9 @@ void print_field(const Field *field)
 {
     char *ANSI_COLORS[9] = {"\033[0m", "\033[34m", "\033[32m", "\033[31m", "\033[35m", "\033[90m", "\033[36m", "\033[2m", "\033[33m"};
 
-    for (int y = 0; y < FIELD_SIZE; y++)
+    for (int y = 0; y < field->size; y++)
     {
-        for (int x = 0; x < FIELD_SIZE; x++)
+        for (int x = 0; x < field->size; x++)
         {
             bool chosen = x == field->caretx && y == field->carety;
             Cell *cell = field->cells[y][x];
@@ -163,7 +171,7 @@ int flag_cell(Cell *cell)
 
 void open_neighbour(Field *field, uint32_t x, uint32_t y)
 {
-    if (field == NULL || x >= FIELD_SIZE || y >= FIELD_SIZE || x < 0 || y < 0)
+    if (field == NULL || x >= field->size || y >= field->size || x < 0 || y < 0)
     {
         return;
     }
@@ -195,9 +203,9 @@ void open_neighbour(Field *field, uint32_t x, uint32_t y)
 
 int eval_field(Field *field)
 {
-    for (int y = 0; y < FIELD_SIZE; y++)
+    for (int y = 0; y < field->size; y++)
     {
-        for (int x = 0; x < FIELD_SIZE; x++)
+        for (int x = 0; x < field->size; x++)
         {
             Cell *curcell = field->cells[y][x];
             if (curcell->isbomb && !curcell->isflagged)
@@ -216,9 +224,9 @@ int eval_field(Field *field)
 
 void open_field(Field *field)
 {
-    for (int y = 0; y < FIELD_SIZE; y++)
+    for (int y = 0; y < field->size; y++)
     {
-        for (int x = 0; x < FIELD_SIZE; x++)
+        for (int x = 0; x < field->size; x++)
         {
             field->cells[y][x]->isopened = true;
         }

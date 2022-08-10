@@ -36,7 +36,7 @@ int main(int argc, char *argv[])
 
         // cursor movement
         print_field(&myfield);
-        printf("\033[%dA", FIELD_SIZE);
+        printf("\033[%dA", myfield.size);
         int arrow = get_arrow_keys(&input);
 
         // enter press
@@ -95,7 +95,7 @@ int main(int argc, char *argv[])
             // right
             case 'M':
             {
-                if (myfield.caretx < FIELD_SIZE - 1)
+                if (myfield.caretx < myfield.size - 1)
                     myfield.caretx++;
                 break;
             }
@@ -103,7 +103,7 @@ int main(int argc, char *argv[])
             // down
             case 'P':
             {
-                if (myfield.carety < FIELD_SIZE - 1)
+                if (myfield.carety < myfield.size - 1)
                     myfield.carety++;
                 break;
             }
@@ -128,9 +128,9 @@ int main(int argc, char *argv[])
         }
     }
 
-    for (int y = 0; y < FIELD_SIZE; y++)
+    for (int y = 0; y < myfield.size; y++)
     {
-        for (int x = 0; x < FIELD_SIZE; x++)
+        for (int x = 0; x < myfield.size; x++)
         {
             free(myfield.cells[y][x]);
         }

@@ -3,18 +3,17 @@
 #include <stdbool.h>
 #include <stdint.h>
 
-#define FIELD_SIZE 30
-
 typedef struct _field Field;
 typedef struct _cell Cell;
 
 struct _field
 {
     bool gameover;
-    int fieldsize;
+    int size;
     int caretx;
     int carety;
-    Cell *cells[FIELD_SIZE][FIELD_SIZE];
+    // a 2d array containing pointers
+    Cell ***cells;
 };
 
 struct _cell
