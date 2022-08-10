@@ -10,6 +10,12 @@ int standbombper = 10;
 
 int main(int argc, char *argv[])
 {
+#ifdef _PRETTY
+    printf("Game is pretty\n");
+#else
+    printf("Game is not pretty\n");
+#endif // _PRETTY
+    return 0;
 
     if (argc > 1)
     {
