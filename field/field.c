@@ -12,7 +12,7 @@
 
 int init_field(Field *field, uint32_t fieldsize, uint32_t bombpercentage)
 {
-    if (field == NULL || fieldsize < 4)
+    if (field == NULL || fieldsize < 4 || bombpercentage >= 100)
     {
         return 0;
     }
