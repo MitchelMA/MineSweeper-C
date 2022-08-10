@@ -1,13 +1,29 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <conio.h>
+#include <string.h>
 #include "field/field.h"
 #include "input/input.h"
 
-int main(void)
+int standfieldsize = 30;
+int standbombper = 10;
+
+int main(int argc, char *argv[])
 {
+
+    if (argc > 1)
+    {
+        argv++;
+        standfieldsize = atoi(*argv);
+    }
+    if (argc > 2)
+    {
+        argv++;
+        standbombper = atoi(*argv);
+    }
+
     Field myfield;
-    if (!init_field(&myfield, 10))
+    if (!init_field(&myfield, standfieldsize, standbombper))
     {
         printf("Het lukte niet om het speelveld te initializeren\n");
         return EXIT_FAILURE;
@@ -20,7 +36,7 @@ int main(void)
 
         // cursor movement
         print_field(&myfield);
-        printf("\033[%dA", FIELD_SIZE);
+        printf("\033[%dA", myfield.size);
         int arrow = get_arrow_keys(&input);
 
         // enter press
@@ -79,7 +95,7 @@ int main(void)
             // right
             case 'M':
             {
-                if (myfield.caretx < FIELD_SIZE - 1)
+                if (myfield.caretx < myfield.size - 1)
                     myfield.caretx++;
                 break;
             }
@@ -87,7 +103,7 @@ int main(void)
             // down
             case 'P':
             {
-                if (myfield.carety < FIELD_SIZE - 1)
+                if (myfield.carety < myfield.size - 1)
                     myfield.carety++;
                 break;
             }
@@ -112,9 +128,9 @@ int main(void)
         }
     }
 
-    for (int y = 0; y < FIELD_SIZE; y++)
+    for (int y = 0; y < myfield.size; y++)
     {
-        for (int x = 0; x < FIELD_SIZE; x++)
+        for (int x = 0; x < myfield.size; x++)
         {
             free(myfield.cells[y][x]);
         }
