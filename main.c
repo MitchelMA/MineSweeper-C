@@ -10,13 +10,6 @@ int standbombper = 10;
 
 int main(int argc, char *argv[])
 {
-#ifdef _PRETTY
-    printf("Game is pretty\n");
-#else
-    printf("Game is not pretty\n");
-#endif // _PRETTY
-    return 0;
-
     if (argc > 1)
     {
         argv++;
@@ -39,10 +32,14 @@ int main(int argc, char *argv[])
 
     while (input != 27)
     {
-
-        // cursor movement
+#ifndef _PRETTY
+        clrscrn();
+#endif // _PRETTY
+       // cursor movement
         print_field(&myfield);
+#ifdef _PRETTY
         printf("\033[%dA", myfield.size);
+#endif // _PRETTY
         int arrow = get_arrow_keys(&input);
 
         // enter press
@@ -62,6 +59,9 @@ int main(int argc, char *argv[])
             if (curcell->isbomb && curcell->isopened)
             {
                 myfield.gameover = true;
+#ifndef _PRETTY
+                clrscrn();
+#endif // _PRETTY
                 open_field(&myfield);
                 print_field(&myfield);
                 printf("Game Over!\nJe opende een bom!\n");
@@ -127,6 +127,9 @@ int main(int argc, char *argv[])
         // evaluate the field at the end of every
         if (eval_field(&myfield))
         {
+#ifndef _PRETTY
+            clrscrn();
+#endif // _PRETTY
             open_field(&myfield);
             print_field(&myfield);
             printf("Je hebt gewonnen!\n");
