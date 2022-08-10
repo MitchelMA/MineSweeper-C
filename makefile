@@ -15,7 +15,7 @@ release: all
 
 nonansi: $(OBJS) build
 
-nonansi_release: $(CFLAGS) := -O3
+nonansi_release: CFLAGS := $(CFLAGS) -O3
 nonansi_release: $(OBJS) build
 
 build:
