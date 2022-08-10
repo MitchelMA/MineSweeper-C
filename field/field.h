@@ -21,7 +21,7 @@ struct _cell
     bool isbomb;
     bool isflagged;
     bool isopened;
-    int bombneighbours : 4;
+    uint32_t bombneighbours : 4;
 };
 
 int init_field(Field *field, uint32_t fieldsize, uint32_t bombpercentage);
