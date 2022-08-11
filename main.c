@@ -18,7 +18,6 @@ int alloc_masks(int ***mask, int size);
 int main(int argc, char *argv[])
 {
     int **masks = NULL;
-    unsigned int seed;
     int rstatus = 0;
     if (argc == 1)
     {
