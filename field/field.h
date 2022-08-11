@@ -29,7 +29,7 @@ struct _cell
     uint32_t bombneighbours : 4;
 };
 
-int init_field(Field *field, uint32_t fieldsize, uint32_t bombpercentage);
+int init_field(Field *field, uint32_t fieldsize, uint32_t bombpercentage, unsigned int *seed, int **mask);
 void print_field(const Field *field);
 
 int open_cell(Cell *cell);

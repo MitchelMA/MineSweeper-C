@@ -16,11 +16,9 @@ int read_save(int *fieldsize, int *bombper, unsigned int *seed, int ***out_masks
         return 0;
     }
     fscanf(fp, "%d %d", fieldsize, bombper);
-    printf("Fieldsize: %d, bomb-percentage: %d\n", *fieldsize, *bombper);
 
     bool hassave = false;
     fscanf(fp, "%d", &hassave);
-    printf("hassave: %d\n", hassave);
 
     if (!hassave)
     {
@@ -119,5 +117,11 @@ int write_save(int fieldsize, int bombper, int savefield, int seed, int **masks)
     }
 
     fclose(fp);
+    return 1;
+}
+
+int clear_save(void)
+{
+    fclose(fopen("save", "w"));
     return 1;
 }

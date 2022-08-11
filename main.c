@@ -13,42 +13,20 @@ unsigned int seed = 0;
 // int write_save();
 // int read_save();
 
+int alloc_masks(int ***mask, int size);
+
 int main(int argc, char *argv[])
 {
-    int **masks;
-    // read the save
-    int rstatus = read_save(&standfieldsize, &standbombper, &seed, &masks);
-    if (!rstatus)
-    {
-        printf("Er ging iets mis bij het uitlezen van opslag-data!\n");
-        return EXIT_FAILURE;
-    }
-    if (rstatus != 2)
-    {
-        printf("seed: %u\n", seed);
-        for (int y = 0; y < standfieldsize; y++)
-        {
-            for (int x = 0; x < standfieldsize; x++)
-            {
-                printf("%d ", masks[y][x]);
-            }
-            printf("\n");
-        }
-    }
-    Field f;
-    init_field(&f, standfieldsize, standbombper);
-    field_masks(&f, &masks);
-    write_save(standfieldsize, standbombper, 1, seed, masks);
-    return EXIT_SUCCESS;
-}
-
-int main2(int argc, char *argv[])
-{
-    int **masks;
+    int **masks = NULL;
     unsigned int seed;
-    read_save(&standfieldsize, &standbombper, &seed, &masks);
+    int rstatus = 0;
+    if (argc == 1)
+    {
+        rstatus = read_save(&standfieldsize, &standbombper, &seed, &masks);
+    }
     if (argc > 1)
     {
+        clear_save();
         argv++;
         standfieldsize = atoi(*argv);
     }
@@ -58,14 +36,29 @@ int main2(int argc, char *argv[])
         standbombper = atoi(*argv);
     }
 
+    if (argc > 3)
+    {
+        argv++;
+        seed = atoi(*argv);
+    }
+
     Field myfield;
-    if (!init_field(&myfield, standfieldsize, standbombper))
+    if (!init_field(&myfield, standfieldsize, standbombper, &seed, masks))
     {
         printf("Het lukte niet om het speelveld te initializeren\n");
         return EXIT_FAILURE;
     }
 
-    write_save(standfieldsize, standbombper, 0, seed, masks);
+    if (!rstatus || rstatus == 2)
+    {
+
+        if (!alloc_masks(&masks, standfieldsize))
+        {
+            printf("Kon geen geheugen vragen voor masks\n");
+            return EXIT_FAILURE;
+        }
+    }
+    printf("seed: %d\n", seed);
 
     int input = 0;
 
@@ -122,6 +115,9 @@ int main2(int argc, char *argv[])
         // esc code
         if (input == 27 || input == 113)
         {
+
+            field_masks(&myfield, &masks);
+
             write_save(myfield.size, standbombper, 1, seed, masks);
             break;
         }
@@ -174,7 +170,6 @@ int main2(int argc, char *argv[])
             open_field(&myfield);
             print_field(&myfield);
             printf("Je hebt gewonnen!\n");
-            field_masks(&myfield, &masks);
             write_save(myfield.size, standbombper, 0, seed, masks);
             break;
         }
@@ -193,32 +188,35 @@ int main2(int argc, char *argv[])
     return EXIT_SUCCESS;
 }
 
-// int write_save()
-// {
-//     FILE *f = fopen("save", "w");
-//     char format[255] = {0};
-//     sprintf(format, "%d %d", standfieldsize, standbombper);
-//     int result = fputs(format, f);
+int alloc_masks(int ***masks, int size)
+{
+    if (masks == NULL || size <= 1)
+    {
+        return 0;
+    }
 
-//     fclose(f);
-//     return result;
-// }
+    int **arr = malloc(sizeof(int *) * size);
+    if (arr == NULL)
+    {
+        return 0;
+    }
+    for (int i = 0; i < size; i++)
+    {
+        arr[i] = malloc(sizeof(int) * size);
+        if (arr[i] == NULL)
+        {
+            return 0;
+        }
+    }
 
-// int read_save()
-// {
-//     FILE *f = fopen("save", "r");
-//     if (f == NULL)
-//     {
-//         return 0;
-//     }
-//     char buff[255];
+    for (int y = 0; y < size; y++)
+    {
+        for (int x = 0; x < size; x++)
+        {
+            arr[y][x] = 0;
+        }
+    }
 
-//     int result = fscanf(f, "%s", buff);
-//     standfieldsize = atoi(buff);
-//     result = fscanf(f, "%s", buff);
-//     standbombper = atoi(buff);
-
-//     fclose(f);
-
-//     return result;
-// }
+    *masks = arr;
+    return 1;
+}
