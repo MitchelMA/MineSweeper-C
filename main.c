@@ -4,16 +4,25 @@
 #include <string.h>
 #include "field/field.h"
 #include "input/input.h"
+#include "saveio/saveio.h"
 
 int standfieldsize = 30;
 int standbombper = 10;
 
-int write_save();
-int read_save();
+// int write_save();
+// int read_save();
 
 int main(int argc, char *argv[])
 {
-    read_save();
+    int **masks;
+    // read the save
+    int rstatus = read_save(&masks);
+}
+
+int main2(int argc, char *argv[])
+{
+    int **masks;
+    read_save(&masks);
     if (argc > 1)
     {
         argv++;
@@ -32,7 +41,7 @@ int main(int argc, char *argv[])
         return EXIT_FAILURE;
     }
 
-    write_save();
+    write_save(masks);
 
     int input = 0;
 
@@ -156,32 +165,32 @@ int main(int argc, char *argv[])
     return EXIT_SUCCESS;
 }
 
-int write_save()
-{
-    FILE *f = fopen("save", "w");
-    char format[255] = {0};
-    sprintf(format, "%d %d", standfieldsize, standbombper);
-    int result = fputs(format, f);
+// int write_save()
+// {
+//     FILE *f = fopen("save", "w");
+//     char format[255] = {0};
+//     sprintf(format, "%d %d", standfieldsize, standbombper);
+//     int result = fputs(format, f);
 
-    fclose(f);
-    return result;
-}
+//     fclose(f);
+//     return result;
+// }
 
-int read_save()
-{
-    FILE *f = fopen("save", "r");
-    if (f == NULL)
-    {
-        return 0;
-    }
-    char buff[255];
+// int read_save()
+// {
+//     FILE *f = fopen("save", "r");
+//     if (f == NULL)
+//     {
+//         return 0;
+//     }
+//     char buff[255];
 
-    int result = fscanf(f, "%s", buff);
-    standfieldsize = atoi(buff);
-    result = fscanf(f, "%s", buff);
-    standbombper = atoi(buff);
+//     int result = fscanf(f, "%s", buff);
+//     standfieldsize = atoi(buff);
+//     result = fscanf(f, "%s", buff);
+//     standbombper = atoi(buff);
 
-    fclose(f);
+//     fclose(f);
 
-    return result;
-}
+//     return result;
+// }
