@@ -10,7 +10,10 @@
 #define ANSI_RESET "\033[m"
 #endif // _PRETTY
 
-int init_field(Field *field, uint32_t fieldsize, uint32_t bombpercentage)
+// LOCAL PROTOTYPES
+void cell_set_bomb(Field *field, int x, int y);
+
+int init_field(Field *field, uint32_t fieldsize, uint32_t bombpercentage, unsigned int *seed, int **masks)
 {
     if (field == NULL || fieldsize < 4 || bombpercentage >= 100)
     {
@@ -52,61 +55,67 @@ int init_field(Field *field, uint32_t fieldsize, uint32_t bombpercentage)
     }
 
     time_t t1;
-    long long seed = time(&t1);
-    srand(seed);
-
-    int times = 0;
-    for (int i = 0; i < bombamount;)
+    unsigned int s = time(&t1);
+    if (seed == NULL || *seed == 0)
     {
-        times++;
-        int randx = rand() % field->size;
-        int randy = rand() % field->size;
-
-        Cell *cell = field->cells[randy][randx];
-
-        if (cell->isbomb)
+        srand(s);
+        if (seed != NULL)
         {
-            continue;
+            *seed = s;
         }
-
-        cell->isbomb = true;
-        if (randx > 0)
-        {
-            field->cells[randy][randx - 1]->bombneighbours++;
-        }
-        if (randx < field->size - 1)
-        {
-            field->cells[randy][randx + 1]->bombneighbours++;
-        }
-
-        if (randy > 0)
-        {
-            field->cells[randy - 1][randx]->bombneighbours++;
-        }
-        if (randy < field->size - 1)
-        {
-            field->cells[randy + 1][randx]->bombneighbours++;
-        }
-
-        if (randx > 0 && randy > 0)
-        {
-            field->cells[randy - 1][randx - 1]->bombneighbours++;
-        }
-        if (randx < field->size - 1 && randy > 0)
-        {
-            field->cells[randy - 1][randx + 1]->bombneighbours++;
-        }
-        if (randx > 0 && randy < field->size - 1)
-        {
-            field->cells[randy + 1][randx - 1]->bombneighbours++;
-        }
-        if (randx < field->size - 1 && randy < field->size - 1)
-        {
-            field->cells[randy + 1][randx + 1]->bombneighbours++;
-        }
-        i++;
+    }
+    else
+    {
+        srand(*seed);
     }
 
+    if (masks == NULL)
+    {
+
+        int times = 0;
+        for (int i = 0; i < bombamount;)
+        {
+            times++;
+            int randx = rand() % field->size;
+            int randy = rand() % field->size;
+
+            Cell *cell = field->cells[randy][randx];
+
+            if (cell->isbomb)
+            {
+                continue;
+            }
+
+            cell_set_bomb(field, randx, randy);
+            i++;
+        }
+    }
+    else
+    {
+        for (int i = 0; i < field->size * field->size; i++)
+        {
+            int x = i % field->size;
+            int y = i / field->size;
+
+            Cell *curcell = field->cells[y][x];
+            int curmask = masks[y][x];
+
+            if (curmask & IS_OPEN_MASK)
+            {
+                open_cell(curcell);
+            }
+
+            if (curmask & IS_BOMB_MASK)
+            {
+                cell_set_bomb(field, x, y);
+            }
+
+            if (curmask & IS_FLAGGED_MASK)
+            {
+                flag_cell(curcell);
+            }
+        }
+    }
     return 1;
 }
 
@@ -227,7 +236,7 @@ void open_neighbour(Field *field, uint32_t x, uint32_t y)
     open_neighbour(field, x + 1, y + 1);
 }
 
-int eval_field(Field *field)
+int eval_field(const Field *field)
 {
     for (int y = 0; y < field->size; y++)
     {
@@ -256,5 +265,82 @@ void open_field(Field *field)
         {
             field->cells[y][x]->isopened = true;
         }
+    }
+}
+
+int field_masks(const Field *field, int ***out_masks)
+{
+    if (field == NULL || out_masks == NULL)
+    {
+        printf("out-mask or field was NULL\n");
+        return 0;
+    }
+
+    for (int y = 0; y < field->size; y++)
+    {
+        for (int x = 0; x < field->size; x++)
+        {
+            int value = 0;
+            Cell *curcell = field->cells[y][x];
+            if (curcell->isopened)
+            {
+                value |= IS_OPEN_MASK;
+            }
+
+            if (curcell->isbomb)
+            {
+                value |= IS_BOMB_MASK;
+            }
+
+            if (curcell->isflagged)
+            {
+                value |= IS_FLAGGED_MASK;
+            }
+
+            (*out_masks)[y][x] = value;
+        }
+    }
+    return 1;
+}
+
+void cell_set_bomb(Field *field, int x, int y)
+{
+
+    Cell *curcell = field->cells[y][x];
+
+    curcell->isbomb = true;
+    if (x > 0)
+    {
+        field->cells[y][x - 1]->bombneighbours++;
+    }
+    if (x < field->size - 1)
+    {
+        field->cells[y][x + 1]->bombneighbours++;
+    }
+
+    if (y > 0)
+    {
+        field->cells[y - 1][x]->bombneighbours++;
+    }
+    if (y < field->size - 1)
+    {
+        field->cells[y + 1][x]->bombneighbours++;
+    }
+
+    if (x > 0 && y > 0)
+    {
+        field->cells[y - 1][x - 1]->bombneighbours++;
+    }
+    if (x < field->size - 1 && y > 0)
+    {
+        field->cells[y - 1][x + 1]->bombneighbours++;
+    }
+    if (x > 0 && y < field->size - 1)
+    {
+        field->cells[y + 1][x - 1]->bombneighbours++;
+    }
+    if (x < field->size - 1 && y < field->size - 1)
+    {
+        field->cells[y + 1][x + 1]->bombneighbours++;
     }
 }

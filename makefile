@@ -3,7 +3,8 @@ CFLAGS := -g -Wall -pedantic
 
 OBJS := main.o \
 input\input.o \
-field\field.o
+field\field.o \
+saveio\saveio.o
 
 all: CFLAGS += -D_PRETTY=1
 all: $(OBJS) build
