@@ -92,7 +92,6 @@ int init_field(Field *field, uint32_t fieldsize, uint32_t bombpercentage, unsign
     }
     else
     {
-        int times = 0;
         for (int i = 0; i < field->size * field->size; i++)
         {
             int x = i % field->size;

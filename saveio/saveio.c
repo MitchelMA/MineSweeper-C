@@ -17,7 +17,7 @@ int read_save(int *fieldsize, int *bombper, unsigned int *seed, int ***out_masks
     }
     fscanf(fp, "%d %d", fieldsize, bombper);
 
-    bool hassave = false;
+    int hassave = false;
     fscanf(fp, "%d", &hassave);
 
     if (!hassave)

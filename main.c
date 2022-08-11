@@ -199,17 +199,13 @@ int alloc_masks(int ***masks, int size)
     {
         return 0;
     }
-    for (int i = 0; i < size; i++)
+    for (int y = 0; y < size; y++)
     {
-        arr[i] = malloc(sizeof(int) * size);
-        if (arr[i] == NULL)
+        arr[y] = malloc(sizeof(int) * size);
+        if (arr[y] == NULL)
         {
             return 0;
         }
-    }
-
-    for (int y = 0; y < size; y++)
-    {
         for (int x = 0; x < size; x++)
         {
             arr[y][x] = 0;
