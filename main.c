@@ -16,13 +16,27 @@ int main(int argc, char *argv[])
 {
     int **masks;
     // read the save
-    int rstatus = read_save(&masks);
+    int rstatus = read_save(&standfieldsize, &standbombper, &masks);
+    if (!rstatus)
+    {
+        printf("Er ging iets mis bij het uitlezen van opslag-data!\n");
+        return EXIT_FAILURE;
+    }
+    for (int y = 0; y < standfieldsize; y++)
+    {
+        for (int x = 0; x < standfieldsize; x++)
+        {
+            printf("%d ", masks[y][x]);
+        }
+        printf("\n");
+    }
+    return EXIT_SUCCESS;
 }
 
 int main2(int argc, char *argv[])
 {
     int **masks;
-    read_save(&masks);
+    read_save(&standfieldsize, &standbombper, &masks);
     if (argc > 1)
     {
         argv++;
