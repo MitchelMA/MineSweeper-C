@@ -227,7 +227,7 @@ void open_neighbour(Field *field, uint32_t x, uint32_t y)
     open_neighbour(field, x + 1, y + 1);
 }
 
-int eval_field(Field *field)
+int eval_field(const Field *field)
 {
     for (int y = 0; y < field->size; y++)
     {
@@ -257,4 +257,10 @@ void open_field(Field *field)
             field->cells[y][x]->isopened = true;
         }
     }
+}
+
+int field_masks(const Field *field, int ***out_masks)
+{
+
+    return 0;
 }

@@ -8,6 +8,7 @@
 
 int standfieldsize = 30;
 int standbombper = 10;
+unsigned int seed = 0;
 
 // int write_save();
 // int read_save();
@@ -16,27 +17,33 @@ int main(int argc, char *argv[])
 {
     int **masks;
     // read the save
-    int rstatus = read_save(&standfieldsize, &standbombper, &masks);
+    int rstatus = read_save(&standfieldsize, &standbombper, &seed, &masks);
     if (!rstatus)
     {
         printf("Er ging iets mis bij het uitlezen van opslag-data!\n");
         return EXIT_FAILURE;
     }
-    for (int y = 0; y < standfieldsize; y++)
+    if (rstatus != 2)
     {
-        for (int x = 0; x < standfieldsize; x++)
+        printf("seed: %u\n", seed);
+        for (int y = 0; y < standfieldsize; y++)
         {
-            printf("%d ", masks[y][x]);
+            for (int x = 0; x < standfieldsize; x++)
+            {
+                printf("%d ", masks[y][x]);
+            }
+            printf("\n");
         }
-        printf("\n");
     }
+    write_save(standfieldsize, standbombper, 0, seed, masks);
     return EXIT_SUCCESS;
 }
 
 int main2(int argc, char *argv[])
 {
     int **masks;
-    read_save(&standfieldsize, &standbombper, &masks);
+    unsigned int seed;
+    read_save(&standfieldsize, &standbombper, &seed, &masks);
     if (argc > 1)
     {
         argv++;
@@ -55,7 +62,7 @@ int main2(int argc, char *argv[])
         return EXIT_FAILURE;
     }
 
-    write_save(masks);
+    write_save(standfieldsize, standbombper, 0, seed, masks);
 
     int input = 0;
 
@@ -153,6 +160,8 @@ int main2(int argc, char *argv[])
             }
         }
     evaluation:
+        field_masks(&myfield, &masks);
+        write_save(myfield.size, standbombper, 1, seed, masks);
         // evaluate the field at the end of every
         if (eval_field(&myfield))
         {
@@ -175,6 +184,8 @@ int main2(int argc, char *argv[])
         free(myfield.cells[y]);
     }
     free(myfield.cells);
+
+    write_save(myfield.size, standbombper, 0, seed, masks);
 
     return EXIT_SUCCESS;
 }
