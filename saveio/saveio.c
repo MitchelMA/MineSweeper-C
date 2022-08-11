@@ -59,7 +59,7 @@ int read_save(uint32_t *fieldsize, int *bombper, uint32_t *seed, int ***out_mask
         }
         for (int x = 0; x < *fieldsize; x++)
         {
-            if (fscanf(fp, "%d", &arr[y][x]) == EOF)
+            if (fscanf(fp, "%X", &arr[y][x]) == EOF)
             {
                 fclose(fp);
                 return 0;
@@ -120,7 +120,7 @@ int write_save(uint32_t fieldsize, int bombper, int savefield, uint32_t seed, in
     {
         for (int x = 0; x < fieldsize; x++)
         {
-            sprintf(buff, "%d ", masks[y][x] ^ seed);
+            sprintf(buff, "%X ", masks[y][x] ^ seed);
             if (fputs(buff, fp) == EOF)
             {
                 fclose(fp);
