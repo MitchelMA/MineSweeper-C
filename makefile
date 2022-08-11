@@ -11,7 +11,6 @@ all: $(OBJS) build
 #$(CC) $(CFLAGS) -o minesweeper $(OBJS)
 release: CFLAGS += -O3 -D_PRETTY=1
 release: $(OBJS) build
-	$(CC) $(CFLAGS) -o minesweeper $(OBJS)
 
 nonansi: $(OBJS) build
 
