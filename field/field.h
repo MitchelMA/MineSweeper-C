@@ -1,9 +1,9 @@
 #ifndef __FIELD_H__
 #define __FIELD_H__
 
-#define IS_OPEN_MASK 0b0001    // 1
-#define IS_BOMB_MASK 0B0010    // 2
-#define IS_FLAGGED_MASK 0b0100 // 4
+#define IS_OPEN_MASK 0x0001    // 1
+#define IS_BOMB_MASK 0x0002    // 2
+#define IS_FLAGGED_MASK 0x0004 // 4
 
 #include <stdbool.h>
 #include <stdint.h>

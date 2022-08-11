@@ -25,6 +25,7 @@ int read_save(int *fieldsize, int *bombper, unsigned int *seed, int ***out_masks
     if (!hassave)
     {
         fclose(fp);
+        *out_masks = NULL;
         return 2;
     }
 

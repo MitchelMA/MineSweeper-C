@@ -261,6 +261,35 @@ void open_field(Field *field)
 
 int field_masks(const Field *field, int ***out_masks)
 {
+    if (out_masks == NULL)
+    {
+        printf("out-mask was NULL\n");
+        return 0;
+    }
 
-    return 0;
+    for (int y = 0; y < field->size; y++)
+    {
+        for (int x = 0; x < field->size; x++)
+        {
+            int value = 0;
+            Cell *curcell = field->cells[y][x];
+            if (curcell->isopened)
+            {
+                value |= IS_OPEN_MASK;
+            }
+
+            if (curcell->isbomb)
+            {
+                value |= IS_BOMB_MASK;
+            }
+
+            if (curcell->isflagged)
+            {
+                value |= IS_FLAGGED_MASK;
+            }
+
+            (*out_masks)[y][x] = value;
+        }
+    }
+    return 1;
 }

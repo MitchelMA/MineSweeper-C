@@ -35,7 +35,10 @@ int main(int argc, char *argv[])
             printf("\n");
         }
     }
-    write_save(standfieldsize, standbombper, 0, seed, masks);
+    Field f;
+    init_field(&f, standfieldsize, standbombper);
+    field_masks(&f, &masks);
+    write_save(standfieldsize, standbombper, 1, seed, masks);
     return EXIT_SUCCESS;
 }
 
@@ -66,7 +69,7 @@ int main2(int argc, char *argv[])
 
     int input = 0;
 
-    while (input != 27)
+    while (1)
     {
 #ifndef _PRETTY
         clrscrn();
@@ -101,6 +104,7 @@ int main2(int argc, char *argv[])
                 open_field(&myfield);
                 print_field(&myfield);
                 printf("Game Over!\nJe opende een bom!\n");
+                write_save(myfield.size, standbombper, 0, seed, masks);
                 break;
             }
 
@@ -118,6 +122,7 @@ int main2(int argc, char *argv[])
         // esc code
         if (input == 27 || input == 113)
         {
+            write_save(myfield.size, standbombper, 1, seed, masks);
             break;
         }
 
@@ -160,8 +165,6 @@ int main2(int argc, char *argv[])
             }
         }
     evaluation:
-        field_masks(&myfield, &masks);
-        write_save(myfield.size, standbombper, 1, seed, masks);
         // evaluate the field at the end of every
         if (eval_field(&myfield))
         {
@@ -171,6 +174,8 @@ int main2(int argc, char *argv[])
             open_field(&myfield);
             print_field(&myfield);
             printf("Je hebt gewonnen!\n");
+            field_masks(&myfield, &masks);
+            write_save(myfield.size, standbombper, 0, seed, masks);
             break;
         }
     }
@@ -184,8 +189,6 @@ int main2(int argc, char *argv[])
         free(myfield.cells[y]);
     }
     free(myfield.cells);
-
-    write_save(myfield.size, standbombper, 0, seed, masks);
 
     return EXIT_SUCCESS;
 }
