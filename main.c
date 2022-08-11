@@ -1,19 +1,17 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <stdint.h>
 #include <conio.h>
 #include <string.h>
 #include "field/field.h"
 #include "input/input.h"
 #include "saveio/saveio.h"
 
-int standfieldsize = 30;
+uint32_t standfieldsize = 30;
 int standbombper = 10;
-unsigned int seed = 0;
+uint32_t seed = 0;
 
-// int write_save();
-// int read_save();
-
-int alloc_masks(int ***mask, int size);
+int alloc_masks(int ***mask, uint32_t size);
 
 int main(int argc, char *argv[])
 {
@@ -23,18 +21,22 @@ int main(int argc, char *argv[])
     {
         rstatus = read_save(&standfieldsize, &standbombper, &seed, &masks);
     }
+    // field size
     if (argc > 1)
     {
         clear_save();
         argv++;
         standfieldsize = atoi(*argv);
     }
+
+    // bomb-percentage
     if (argc > 2)
     {
         argv++;
         standbombper = atoi(*argv);
     }
 
+    // seed
     if (argc > 3)
     {
         argv++;
@@ -174,9 +176,9 @@ int main(int argc, char *argv[])
         }
     }
 
-    for (int y = 0; y < myfield.size; y++)
+    for (uint32_t y = 0; y < myfield.size; y++)
     {
-        for (int x = 0; x < myfield.size; x++)
+        for (uint32_t x = 0; x < myfield.size; x++)
         {
             free(myfield.cells[y][x]);
         }
@@ -184,10 +186,17 @@ int main(int argc, char *argv[])
     }
     free(myfield.cells);
 
+    // free the masks
+    for (uint32_t i = 0; i < myfield.size; i++)
+    {
+        free(masks[i]);
+    }
+    free(masks);
+
     return EXIT_SUCCESS;
 }
 
-int alloc_masks(int ***masks, int size)
+int alloc_masks(int ***masks, uint32_t size)
 {
     if (masks == NULL || size <= 1)
     {
@@ -199,16 +208,16 @@ int alloc_masks(int ***masks, int size)
     {
         return 0;
     }
-    for (int y = 0; y < size; y++)
+    for (uint32_t y = 0; y < size; y++)
     {
         arr[y] = malloc(sizeof(int) * size);
         if (arr[y] == NULL)
         {
             return 0;
         }
-        for (int x = 0; x < size; x++)
+        for (uint32_t x = 0; x < size; x++)
         {
-            arr[y][x] = 0;
+            arr[y][x] = IS_UNOPENED_MASK;
         }
     }
 

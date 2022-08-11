@@ -3,9 +3,9 @@
 #include <stdlib.h>
 #include <stdbool.h>
 
-int read_save(int *fieldsize, int *bombper, unsigned int *seed, int ***out_masks)
+int read_save(uint32_t *fieldsize, int *bombper, uint32_t *seed, int ***out_masks)
 {
-    if (fieldsize == NULL || bombper == NULL || out_masks == NULL)
+    if (fieldsize == NULL || bombper == NULL || seed == NULL || out_masks == NULL)
     {
         return 0;
     }
@@ -15,10 +15,18 @@ int read_save(int *fieldsize, int *bombper, unsigned int *seed, int ***out_masks
     {
         return 0;
     }
-    fscanf(fp, "%d %d", fieldsize, bombper);
+    if (fscanf(fp, "%u %d", fieldsize, bombper) == EOF)
+    {
+        fclose(fp);
+        return 0;
+    }
 
     int hassave = false;
-    fscanf(fp, "%d", &hassave);
+    if (fscanf(fp, "%d", &hassave) == EOF)
+    {
+        fclose(fp);
+        return 0;
+    }
 
     if (!hassave)
     {
@@ -28,7 +36,11 @@ int read_save(int *fieldsize, int *bombper, unsigned int *seed, int ***out_masks
     }
 
     // read the seed
-    fscanf(fp, "%u", seed);
+    if (fscanf(fp, "%u", seed) == EOF)
+    {
+        fclose(fp);
+        return 0;
+    }
 
     // allocate the memory for the array
     int **arr = malloc(sizeof(int *) * *fieldsize);
@@ -47,11 +59,12 @@ int read_save(int *fieldsize, int *bombper, unsigned int *seed, int ***out_masks
         }
         for (int x = 0; x < *fieldsize; x++)
         {
-            if (fscanf(fp, "%d", &arr[y][x]) == -1)
+            if (fscanf(fp, "%d", &arr[y][x]) == EOF)
             {
                 fclose(fp);
                 return 0;
             }
+            arr[y][x] ^= *seed;
         }
     }
 
@@ -61,7 +74,7 @@ int read_save(int *fieldsize, int *bombper, unsigned int *seed, int ***out_masks
     return 1;
 }
 
-int write_save(int fieldsize, int bombper, int savefield, int seed, int **masks)
+int write_save(uint32_t fieldsize, int bombper, int savefield, uint32_t seed, int **masks)
 {
     FILE *fp = fopen("save", "w");
     if (fp == NULL)
@@ -107,7 +120,7 @@ int write_save(int fieldsize, int bombper, int savefield, int seed, int **masks)
     {
         for (int x = 0; x < fieldsize; x++)
         {
-            sprintf(buff, "%d ", masks[y][x]);
+            sprintf(buff, "%d ", masks[y][x] ^ seed);
             if (fputs(buff, fp) == EOF)
             {
                 fclose(fp);

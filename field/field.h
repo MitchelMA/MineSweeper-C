@@ -1,9 +1,10 @@
 #ifndef __FIELD_H__
 #define __FIELD_H__
 
-#define IS_OPEN_MASK 0x0001    // 1
-#define IS_BOMB_MASK 0x0002    // 2
-#define IS_FLAGGED_MASK 0x0004 // 4
+#define IS_UNOPENED_MASK 0x0000 // 0
+#define IS_OPEN_MASK 0x0001     // 1
+#define IS_BOMB_MASK 0x0002     // 2
+#define IS_FLAGGED_MASK 0x0004  // 4
 
 #include <stdbool.h>
 #include <stdint.h>
@@ -14,9 +15,9 @@ typedef struct _cell Cell;
 struct _field
 {
     bool gameover;
-    int size;
-    int caretx;
-    int carety;
+    uint32_t size;
+    uint32_t caretx;
+    uint32_t carety;
     // a 2d array containing pointers
     Cell ***cells;
 };
@@ -29,7 +30,7 @@ struct _cell
     uint32_t bombneighbours : 4;
 };
 
-int init_field(Field *field, uint32_t fieldsize, uint32_t bombpercentage, unsigned int *seed, int **mask);
+int init_field(Field *field, uint32_t fieldsize, int bombpercentage, uint32_t *seed, int **mask);
 void print_field(const Field *field);
 
 int open_cell(Cell *cell);

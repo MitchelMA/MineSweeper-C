@@ -1,8 +1,9 @@
 #ifndef __SAVEIO_H__
 #define __SAVEIO_H__
+#include <stdint.h>
 
-int read_save(int *fieldsize, int *bombper, unsigned int *seed, int ***out_masks);
-int write_save(int fieldsize, int bombper, int savefield, int seed, int **masks);
+int read_save(uint32_t *fieldsize, int *bombper, uint32_t *seed, int ***out_masks);
+int write_save(uint32_t fieldsize, int bombper, int savefield, uint32_t seed, int **masks);
 int clear_save(void);
 
 #endif // __SAVEIO_H__
