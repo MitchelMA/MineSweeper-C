@@ -30,7 +30,7 @@ struct _cell
     uint32_t bombneighbours : 4;
 };
 
-int init_field(Field *field, uint32_t fieldsize, int bombpercentage, uint32_t *seed, int **mask);
+int init_field(Field *field, uint32_t fieldsize, int bombpercentage, uint32_t *seed, uint32_t **mask);
 void print_field(const Field *field);
 
 int open_cell(Cell *cell);
@@ -38,6 +38,6 @@ void open_neighbour(Field *field, uint32_t x, uint32_t y);
 int flag_cell(Cell *cell);
 int eval_field(const Field *field);
 void open_field(Field *field);
-int field_masks(const Field *field, int ***out_masks);
+int field_masks(const Field *field, uint32_t ***out_masks);
 
 #endif // __FIELD_H__

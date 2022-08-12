@@ -11,11 +11,11 @@ uint32_t standfieldsize = 30;
 int standbombper = 10;
 uint32_t seed = 0;
 
-int alloc_masks(int ***mask, uint32_t size);
+int alloc_masks(uint32_t ***mask, uint32_t size);
 
 int main(int argc, char *argv[])
 {
-    int **masks = NULL;
+    uint32_t **masks = NULL;
     int rstatus = 0;
     if (argc == 1)
     {
@@ -196,14 +196,14 @@ int main(int argc, char *argv[])
     return EXIT_SUCCESS;
 }
 
-int alloc_masks(int ***masks, uint32_t size)
+int alloc_masks(uint32_t ***masks, uint32_t size)
 {
     if (masks == NULL || size <= 1)
     {
         return 0;
     }
 
-    int **arr = malloc(sizeof(int *) * size);
+    uint32_t **arr = malloc(sizeof(int *) * size);
     if (arr == NULL)
     {
         return 0;

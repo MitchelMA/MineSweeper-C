@@ -13,7 +13,7 @@
 // LOCAL PROTOTYPES
 void cell_set_bomb(Field *field, uint32_t x, uint32_t y);
 
-int init_field(Field *field, uint32_t fieldsize, int bombpercentage, uint32_t *seed, int **masks)
+int init_field(Field *field, uint32_t fieldsize, int bombpercentage, uint32_t *seed, uint32_t **masks)
 {
     if (field == NULL || fieldsize < 4 || bombpercentage >= 100)
     {
@@ -268,7 +268,7 @@ void open_field(Field *field)
     }
 }
 
-int field_masks(const Field *field, int ***out_masks)
+int field_masks(const Field *field, uint32_t ***out_masks)
 {
     if (field == NULL || out_masks == NULL)
     {

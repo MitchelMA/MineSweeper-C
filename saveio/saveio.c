@@ -3,7 +3,7 @@
 #include <stdlib.h>
 #include <stdbool.h>
 
-int read_save(uint32_t *fieldsize, int *bombper, uint32_t *seed, int ***out_masks)
+int read_save(uint32_t *fieldsize, int *bombper, uint32_t *seed, uint32_t ***out_masks)
 {
     if (fieldsize == NULL || bombper == NULL || seed == NULL || out_masks == NULL)
     {
@@ -43,7 +43,7 @@ int read_save(uint32_t *fieldsize, int *bombper, uint32_t *seed, int ***out_mask
     }
 
     // allocate the memory for the array
-    int **arr = malloc(sizeof(int *) * *fieldsize);
+    uint32_t **arr = malloc(sizeof(int *) * *fieldsize);
     if (arr == NULL)
     {
         fclose(fp);
@@ -74,7 +74,7 @@ int read_save(uint32_t *fieldsize, int *bombper, uint32_t *seed, int ***out_mask
     return 1;
 }
 
-int write_save(uint32_t fieldsize, int bombper, int savefield, uint32_t seed, int **masks)
+int write_save(uint32_t fieldsize, int bombper, int savefield, uint32_t seed, uint32_t **masks)
 {
     FILE *fp = fopen("save", "w");
     if (fp == NULL)
