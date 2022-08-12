@@ -7,11 +7,12 @@
 #include "input/input.h"
 #include "saveio/saveio.h"
 
-uint32_t standfieldsize = 30;
-int standbombper = 10;
-uint32_t seed = 0;
+static uint32_t standfieldsize = 30;
+static int standbombper = 10;
+static uint32_t seed = 0;
 
-int alloc_masks(uint32_t ***mask, uint32_t size);
+int handle_open(Field *field);
+void handle_arrows(Field *field, int arrow);
 
 int main(int argc, char *argv[])
 {
@@ -44,20 +45,10 @@ int main(int argc, char *argv[])
     }
 
     Field myfield;
-    if (!init_field(&myfield, standfieldsize, standbombper, &seed, masks))
+    if (!init_field(&myfield, standfieldsize, standbombper, &seed, &masks))
     {
         printf("Het lukte niet om het speelveld te initializeren\n");
         return EXIT_FAILURE;
-    }
-
-    if (!rstatus || rstatus == 2)
-    {
-
-        if (!alloc_masks(&masks, standfieldsize))
-        {
-            printf("Kon geen geheugen vragen voor masks\n");
-            return EXIT_FAILURE;
-        }
     }
     printf("seed: %d\n", seed);
 
@@ -78,18 +69,7 @@ int main(int argc, char *argv[])
         // enter or space press
         if (input == 13 || input == 32)
         {
-            Cell *curcell = myfield.cells[myfield.carety][myfield.caretx];
-            if (curcell->bombneighbours == 0)
-            {
-                open_neighbour(&myfield, myfield.caretx, myfield.carety);
-            }
-            else
-            {
-                open_cell(curcell);
-            }
-
-            // game-over
-            if (curcell->isbomb && curcell->isopened)
+            if (!handle_open(&myfield))
             {
                 myfield.gameover = true;
 #ifndef _PRETTY
@@ -116,9 +96,7 @@ int main(int argc, char *argv[])
         // esc code
         if (input == 27 || input == 113)
         {
-
             field_masks(&myfield, &masks);
-
             write_save(myfield.size, standbombper, 1, seed, masks);
             break;
         }
@@ -126,40 +104,7 @@ int main(int argc, char *argv[])
         // arrow-keys
         if (arrow)
         {
-            switch (arrow)
-            {
-            // up
-            case 'H':
-            {
-                if (myfield.carety > 0)
-                    myfield.carety--;
-                break;
-            }
-
-            // right
-            case 'M':
-            {
-                if (myfield.caretx < myfield.size - 1)
-                    myfield.caretx++;
-                break;
-            }
-
-            // down
-            case 'P':
-            {
-                if (myfield.carety < myfield.size - 1)
-                    myfield.carety++;
-                break;
-            }
-
-            // left
-            case 'K':
-            {
-                if (myfield.caretx > 0)
-                    myfield.caretx--;
-                break;
-            }
-            }
+            handle_arrows(&myfield, arrow);
         }
     evaluation:
         // evaluate the field at the end of every
@@ -176,6 +121,7 @@ int main(int argc, char *argv[])
         }
     }
 
+    // free the cells
     for (uint32_t y = 0; y < myfield.size; y++)
     {
         for (uint32_t x = 0; x < myfield.size; x++)
@@ -196,31 +142,62 @@ int main(int argc, char *argv[])
     return EXIT_SUCCESS;
 }
 
-int alloc_masks(uint32_t ***masks, uint32_t size)
+int handle_open(Field *field)
 {
-    if (masks == NULL || size <= 1)
+    Cell *curcell = field->cells[field->carety][field->caretx];
+    if (curcell->bombneighbours == 0)
     {
+        open_neighbour(field, field->caretx, field->carety);
+    }
+    else
+    {
+        open_cell(curcell);
+    }
+
+    // game-over
+    if (curcell->isbomb && curcell->isopened)
+    {
+
         return 0;
     }
 
-    uint32_t **arr = malloc(sizeof(int *) * size);
-    if (arr == NULL)
-    {
-        return 0;
-    }
-    for (uint32_t y = 0; y < size; y++)
-    {
-        arr[y] = malloc(sizeof(int) * size);
-        if (arr[y] == NULL)
-        {
-            return 0;
-        }
-        for (uint32_t x = 0; x < size; x++)
-        {
-            arr[y][x] = IS_UNOPENED_MASK;
-        }
-    }
-
-    *masks = arr;
     return 1;
+}
+
+void handle_arrows(Field *field, int arrow)
+{
+    switch (arrow)
+    {
+    // up
+    case 'H':
+    {
+        if (field->carety > 0)
+            field->carety--;
+        break;
+    }
+
+    // right
+    case 'M':
+    {
+        if (field->caretx < field->size - 1)
+            field->caretx++;
+        break;
+    }
+
+    // down
+    case 'P':
+    {
+        if (field->carety < field->size - 1)
+            field->carety++;
+        break;
+    }
+
+    // left
+    case 'K':
+    {
+        if (field->caretx > 0)
+            field->caretx--;
+        break;
+    }
+    }
 }
