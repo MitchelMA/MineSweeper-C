@@ -49,7 +49,7 @@ int read_save(uint32_t *fieldsize, int *bombper, uint32_t *seed, uint32_t ***out
         fclose(fp);
         return 0;
     }
-    for (int y = 0; y < *fieldsize; y++)
+    for (uint32_t y = 0; y < *fieldsize; y++)
     {
         arr[y] = malloc(sizeof(int) * *fieldsize);
         if (arr[y] == NULL)
@@ -57,7 +57,7 @@ int read_save(uint32_t *fieldsize, int *bombper, uint32_t *seed, uint32_t ***out
             fclose(fp);
             return 0;
         }
-        for (int x = 0; x < *fieldsize; x++)
+        for (uint32_t x = 0; x < *fieldsize; x++)
         {
             if (fscanf(fp, "%X", &arr[y][x]) == EOF)
             {
@@ -116,9 +116,9 @@ int write_save(uint32_t fieldsize, int bombper, int savefield, uint32_t seed, ui
         return 0;
     }
 
-    for (int y = 0; y < fieldsize; y++)
+    for (uint32_t y = 0; y < fieldsize; y++)
     {
-        for (int x = 0; x < fieldsize; x++)
+        for (uint32_t x = 0; x < fieldsize; x++)
         {
             sprintf(buff, "%X ", masks[y][x] ^ seed);
             if (fputs(buff, fp) == EOF)
