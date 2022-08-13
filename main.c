@@ -21,7 +21,9 @@ int main(void)
     memset(&myfield, 0, sizeof(Field));
     printf("size: %d\n", myfield.size);
     read_save(&standfieldsize, &standbombper, &seed, &masks);
+    init_field(&myfield, standfieldsize, standbombper, &seed, &masks);
     printf("size: %zu; bomb-percentage: %i\n", standfieldsize, standbombper);
+    print_field(&myfield);
     return 0;
 }
 
@@ -155,7 +157,7 @@ int main(void)
 
 int handle_open(Field *field)
 {
-    Cell *curcell = field->cells[field->carety][field->caretx];
+    Cell *curcell = &field->cells[field->carety][field->caretx];
     if (curcell->bombneighbours == 0)
     {
         open_neighbour(field, field->caretx, field->carety);

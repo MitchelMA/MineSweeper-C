@@ -19,7 +19,7 @@ struct _field
     size_t caretx;
     size_t carety;
     // a 2d array containing pointers
-    Cell ***cells;
+    Cell **cells;
 };
 
 struct _cell

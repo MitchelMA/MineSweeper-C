@@ -3,6 +3,7 @@
 // for rng
 #include <time.h>
 #include <conio.h>
+#include <string.h>
 
 #include "field.h"
 
@@ -13,8 +14,7 @@
 // LOCAL PROTOTYPES
 void cell_set_bomb(Field *field, size_t x, size_t y);
 int alloc_masks(uint32_t ***mask, size_t size);
-
-Cell *init_cell(void);
+int init_cell(Cell *cell);
 
 int init_field(Field *field, size_t fieldsize, int bombpercentage, uint32_t *seed, uint32_t ***masks)
 {
@@ -45,13 +45,10 @@ int init_field(Field *field, size_t fieldsize, int bombpercentage, uint32_t *see
     {
         for (size_t x = 0; x < field->size; x++)
         {
-            Cell *cell = init_cell();
-            if (cell == NULL)
+            if (!init_cell(&field->cells[y][x]))
             {
                 return 0;
             }
-
-            field->cells[y][x] = cell;
         }
     }
 
@@ -83,7 +80,7 @@ int init_field(Field *field, size_t fieldsize, int bombpercentage, uint32_t *see
             size_t randx = rand() % field->size;
             size_t randy = rand() % field->size;
 
-            Cell *cell = field->cells[randy][randx];
+            Cell *cell = &field->cells[randy][randx];
 
             if (cell->isbomb)
             {
@@ -100,7 +97,7 @@ int init_field(Field *field, size_t fieldsize, int bombpercentage, uint32_t *see
         {
             for (size_t x = 0; x < field->size; x++)
             {
-                Cell *curcell = field->cells[y][x];
+                Cell *curcell = &field->cells[y][x];
                 int curmask = (*masks)[y][x];
 
                 if (curmask & IS_OPEN_MASK)
@@ -134,7 +131,7 @@ void print_field(const Field *field)
         for (size_t x = 0; x < field->size; x++)
         {
             bool chosen = x == field->caretx && y == field->carety;
-            Cell *cell = field->cells[y][x];
+            Cell *cell = &field->cells[y][x];
             printf("%c", chosen ? '[' : ' ');
 #ifdef _PRETTY
             if (!cell->isopened)
@@ -216,7 +213,7 @@ void open_neighbour(Field *field, size_t x, size_t y)
     }
 
     // open this one, then recursively open neighbouring cells
-    Cell *curcell = field->cells[y][x];
+    Cell *curcell = &field->cells[y][x];
     if (curcell->isflagged)
     {
         return;
@@ -246,7 +243,7 @@ int eval_field(const Field *field)
     {
         for (size_t x = 0; x < field->size; x++)
         {
-            Cell *curcell = field->cells[y][x];
+            Cell *curcell = &field->cells[y][x];
 
             if (curcell->isbomb && !curcell->isflagged)
             {
@@ -269,7 +266,7 @@ void open_field(Field *field)
         uint32_t x = i % field->size;
         uint32_t y = i / field->size;
 
-        field->cells[y][x]->isopened = true;
+        field->cells[y][x].isopened = true;
     }
 }
 
@@ -286,7 +283,7 @@ int field_masks(const Field *field, uint32_t ***out_masks)
         for (size_t x = 0; x < field->size; x++)
         {
             int value = IS_UNOPENED_MASK;
-            Cell *curcell = field->cells[y][x];
+            Cell *curcell = &field->cells[y][x];
             if (curcell->isopened)
             {
                 value |= IS_OPEN_MASK;
@@ -313,42 +310,42 @@ void cell_set_bomb(Field *field, size_t x, size_t y)
     if (field == NULL || x < 0 || y < 0 || x >= field->size || y >= field->size)
         return;
 
-    Cell *curcell = field->cells[y][x];
+    Cell *curcell = &field->cells[y][x];
 
     curcell->isbomb = true;
     if (x > 0)
     {
-        field->cells[y][x - 1]->bombneighbours++;
+        field->cells[y][x - 1].bombneighbours++;
     }
     if (x < field->size - 1)
     {
-        field->cells[y][x + 1]->bombneighbours++;
+        field->cells[y][x + 1].bombneighbours++;
     }
 
     if (y > 0)
     {
-        field->cells[y - 1][x]->bombneighbours++;
+        field->cells[y - 1][x].bombneighbours++;
     }
     if (y < field->size - 1)
     {
-        field->cells[y + 1][x]->bombneighbours++;
+        field->cells[y + 1][x].bombneighbours++;
     }
 
     if (x > 0 && y > 0)
     {
-        field->cells[y - 1][x - 1]->bombneighbours++;
+        field->cells[y - 1][x - 1].bombneighbours++;
     }
     if (x < field->size - 1 && y > 0)
     {
-        field->cells[y - 1][x + 1]->bombneighbours++;
+        field->cells[y - 1][x + 1].bombneighbours++;
     }
     if (x > 0 && y < field->size - 1)
     {
-        field->cells[y + 1][x - 1]->bombneighbours++;
+        field->cells[y + 1][x - 1].bombneighbours++;
     }
     if (x < field->size - 1 && y < field->size - 1)
     {
-        field->cells[y + 1][x + 1]->bombneighbours++;
+        field->cells[y + 1][x + 1].bombneighbours++;
     }
 }
 
@@ -381,17 +378,9 @@ int alloc_masks(uint32_t ***masks, size_t size)
     return 1;
 }
 
-Cell *init_cell(void)
+int init_cell(Cell *cell)
 {
-    Cell *cell = malloc(sizeof(cell));
-    if (cell == NULL)
-    {
-        return NULL;
-    }
-    cell->bombneighbours = 0;
-    cell->isbomb = false;
-    cell->isflagged = false;
-    cell->isopened = false;
+    memset(cell, 0, sizeof(Cell));
 
-    return cell;
+    return 1;
 }
