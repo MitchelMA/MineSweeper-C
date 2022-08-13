@@ -15,10 +15,11 @@ typedef struct _cell Cell;
 struct _field
 {
     bool gameover;
+    int bombper;
     size_t size;
     size_t caretx;
     size_t carety;
-    // a 2d array containing pointers
+    uint32_t seed;
     Cell **cells;
 };
 
