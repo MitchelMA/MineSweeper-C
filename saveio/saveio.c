@@ -3,7 +3,7 @@
 #include <stdlib.h>
 #include <stdbool.h>
 
-int read_save(uint32_t *fieldsize, int *bombper, uint32_t *seed, uint32_t ***out_masks)
+int read_save(size_t *fieldsize, int *bombper, uint32_t *seed, uint32_t ***out_masks)
 {
     if (fieldsize == NULL || bombper == NULL || seed == NULL || out_masks == NULL)
     {
@@ -15,14 +15,8 @@ int read_save(uint32_t *fieldsize, int *bombper, uint32_t *seed, uint32_t ***out
     {
         return 0;
     }
-    if (fscanf(fp, "%u %d", fieldsize, bombper) == EOF)
-    {
-        fclose(fp);
-        return 0;
-    }
-
     int hassave = false;
-    if (fscanf(fp, "%d", &hassave) == EOF)
+    if (fscanf(fp, "%zu %d %d", fieldsize, bombper, &hassave) == EOF)
     {
         fclose(fp);
         return 0;
@@ -36,7 +30,7 @@ int read_save(uint32_t *fieldsize, int *bombper, uint32_t *seed, uint32_t ***out
     }
 
     // read the seed
-    if (fscanf(fp, "%u", seed) == EOF)
+    if (fscanf(fp, "%zd", seed) == EOF)
     {
         fclose(fp);
         return 0;
@@ -49,7 +43,7 @@ int read_save(uint32_t *fieldsize, int *bombper, uint32_t *seed, uint32_t ***out
         fclose(fp);
         return 0;
     }
-    for (uint32_t y = 0; y < *fieldsize; y++)
+    for (size_t y = 0; y < *fieldsize; y++)
     {
         arr[y] = malloc(sizeof(int) * *fieldsize);
         if (arr[y] == NULL)
@@ -57,7 +51,7 @@ int read_save(uint32_t *fieldsize, int *bombper, uint32_t *seed, uint32_t ***out
             fclose(fp);
             return 0;
         }
-        for (uint32_t x = 0; x < *fieldsize; x++)
+        for (size_t x = 0; x < *fieldsize; x++)
         {
             if (fscanf(fp, "%X", &arr[y][x]) == EOF)
             {
@@ -74,7 +68,7 @@ int read_save(uint32_t *fieldsize, int *bombper, uint32_t *seed, uint32_t ***out
     return 1;
 }
 
-int write_save(uint32_t fieldsize, int bombper, int savefield, uint32_t seed, uint32_t **masks)
+int write_save(size_t fieldsize, int bombper, int savefield, uint32_t seed, uint32_t **masks)
 {
     FILE *fp = fopen("save", "w");
     if (fp == NULL)
@@ -83,7 +77,7 @@ int write_save(uint32_t fieldsize, int bombper, int savefield, uint32_t seed, ui
     }
 
     char buff[256];
-    sprintf(buff, "%d %d ", fieldsize, bombper);
+    sprintf(buff, "%zd %d ", fieldsize, bombper);
     if (fputs(buff, fp) == EOF)
     {
         fclose(fp);
@@ -116,9 +110,9 @@ int write_save(uint32_t fieldsize, int bombper, int savefield, uint32_t seed, ui
         return 0;
     }
 
-    for (uint32_t y = 0; y < fieldsize; y++)
+    for (size_t y = 0; y < fieldsize; y++)
     {
-        for (uint32_t x = 0; x < fieldsize; x++)
+        for (size_t x = 0; x < fieldsize; x++)
         {
             sprintf(buff, "%X ", masks[y][x] ^ seed);
             if (fputs(buff, fp) == EOF)

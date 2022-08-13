@@ -11,12 +11,12 @@
 #endif // _PRETTY
 
 // LOCAL PROTOTYPES
-void cell_set_bomb(Field *field, uint32_t x, uint32_t y);
-int alloc_masks(uint32_t ***mask, uint32_t size);
+void cell_set_bomb(Field *field, size_t x, size_t y);
+int alloc_masks(uint32_t ***mask, size_t size);
 
 Cell *init_cell(void);
 
-int init_field(Field *field, uint32_t fieldsize, int bombpercentage, uint32_t *seed, uint32_t ***masks)
+int init_field(Field *field, size_t fieldsize, int bombpercentage, uint32_t *seed, uint32_t ***masks)
 {
     if (field == NULL || fieldsize < 4 || bombpercentage >= 100)
     {
@@ -27,8 +27,8 @@ int init_field(Field *field, uint32_t fieldsize, int bombpercentage, uint32_t *s
     field->carety = 0;
     field->gameover = false;
     field->size = fieldsize;
-    uint64_t cellamount = field->size * field->size;
-    uint64_t bombamount = ((float)bombpercentage / (float)100) * cellamount;
+    size_t cellamount = field->size * field->size;
+    size_t bombamount = ((float)bombpercentage / (float)100) * cellamount;
     if (bombamount == 0)
     {
         return 0;
@@ -36,26 +36,26 @@ int init_field(Field *field, uint32_t fieldsize, int bombpercentage, uint32_t *s
 
     // allocate memory for the 2d cells array
     field->cells = malloc(sizeof(Cell **) * field->size);
-    for (uint32_t i = 0; i < field->size; i++)
+    for (size_t i = 0; i < field->size; i++)
     {
         field->cells[i] = malloc(sizeof(Cell *) * field->size);
     }
 
-    for (uint64_t i = 0; i < cellamount; i++)
+    for (size_t y = 0; y < field->size; y++)
     {
-        uint32_t x = i % field->size;
-        uint32_t y = i / field->size;
-        Cell *cell = init_cell();
-        if (cell == NULL)
+        for (size_t x = 0; x < field->size; x++)
         {
-            return 0;
-        }
+            Cell *cell = init_cell();
+            if (cell == NULL)
+            {
+                return 0;
+            }
 
-        field->cells[y][x] = cell;
+            field->cells[y][x] = cell;
+        }
     }
 
-    time_t t1;
-    uint32_t s = time(&t1);
+    uint32_t s = time(0);
     if (seed == NULL || *seed == 0)
     {
         srand(s);
@@ -69,7 +69,7 @@ int init_field(Field *field, uint32_t fieldsize, int bombpercentage, uint32_t *s
         srand(*seed);
     }
 
-    if (*masks == NULL)
+    if (masks == NULL || *masks == NULL)
     {
         // allocate memory for the masks
         if (!alloc_masks(masks, field->size))
@@ -77,11 +77,11 @@ int init_field(Field *field, uint32_t fieldsize, int bombpercentage, uint32_t *s
             return 0;
         }
         int times = 0;
-        for (uint64_t i = 0; i < bombamount;)
+        for (size_t i = 0; i < bombamount;)
         {
             times++;
-            uint32_t randx = rand() % field->size;
-            uint32_t randy = rand() % field->size;
+            size_t randx = rand() % field->size;
+            size_t randy = rand() % field->size;
 
             Cell *cell = field->cells[randy][randx];
 
@@ -96,27 +96,27 @@ int init_field(Field *field, uint32_t fieldsize, int bombpercentage, uint32_t *s
     }
     else
     {
-        for (uint64_t i = 0; i < cellamount; i++)
+        for (size_t y = 0; y < field->size; y++)
         {
-            uint32_t x = i % field->size;
-            uint32_t y = i / field->size;
-
-            Cell *curcell = field->cells[y][x];
-            int curmask = (*masks)[y][x];
-
-            if (curmask & IS_OPEN_MASK)
+            for (size_t x = 0; x < field->size; x++)
             {
-                open_cell(curcell);
-            }
+                Cell *curcell = field->cells[y][x];
+                int curmask = (*masks)[y][x];
 
-            if (curmask & IS_BOMB_MASK)
-            {
-                cell_set_bomb(field, x, y);
-            }
+                if (curmask & IS_OPEN_MASK)
+                {
+                    open_cell(curcell);
+                }
 
-            if (curmask & IS_FLAGGED_MASK)
-            {
-                flag_cell(curcell);
+                if (curmask & IS_BOMB_MASK)
+                {
+                    cell_set_bomb(field, x, y);
+                }
+
+                if (curmask & IS_FLAGGED_MASK)
+                {
+                    flag_cell(curcell);
+                }
             }
         }
     }
@@ -129,9 +129,9 @@ void print_field(const Field *field)
     char *ANSI_COLORS[9] = {"\033[0m", "\033[34m", "\033[32m", "\033[31m", "\033[35m", "\033[90m", "\033[36m", "\033[2m", "\033[33m"};
 #endif // _PRETTY
 
-    for (uint32_t y = 0; y < field->size; y++)
+    for (size_t y = 0; y < field->size; y++)
     {
-        for (uint32_t x = 0; x < field->size; x++)
+        for (size_t x = 0; x < field->size; x++)
         {
             bool chosen = x == field->caretx && y == field->carety;
             Cell *cell = field->cells[y][x];
@@ -208,7 +208,7 @@ int flag_cell(Cell *cell)
     return 1;
 }
 
-void open_neighbour(Field *field, uint32_t x, uint32_t y)
+void open_neighbour(Field *field, size_t x, size_t y)
 {
     if (field == NULL || x >= field->size || y >= field->size || x < 0 || y < 0)
     {
@@ -242,20 +242,20 @@ void open_neighbour(Field *field, uint32_t x, uint32_t y)
 
 int eval_field(const Field *field)
 {
-    for (uint64_t i = 0; i < field->size * field->size; i++)
+    for (size_t y = 0; y < field->size; y++)
     {
-        uint32_t x = i % field->size;
-        uint32_t y = i / field->size;
-
-        Cell *curcell = field->cells[y][x];
-
-        if (curcell->isbomb && !curcell->isflagged)
+        for (size_t x = 0; x < field->size; x++)
         {
-            return 0;
-        }
-        if (!curcell->isbomb && !curcell->isopened)
-        {
-            return 0;
+            Cell *curcell = field->cells[y][x];
+
+            if (curcell->isbomb && !curcell->isflagged)
+            {
+                return 0;
+            }
+            if (!curcell->isbomb && !curcell->isopened)
+            {
+                return 0;
+            }
         }
     }
 
@@ -275,42 +275,42 @@ void open_field(Field *field)
 
 int field_masks(const Field *field, uint32_t ***out_masks)
 {
-    if (field == NULL || out_masks == NULL)
+    if (field == NULL || out_masks == NULL || *out_masks == NULL)
     {
         printf("out-mask or field was NULL\n");
         return 0;
     }
 
-    for (uint64_t i = 0; i < field->size * field->size; i++)
+    for (size_t y = 0; y < field->size; y++)
     {
-        uint32_t x = i % field->size;
-        uint32_t y = i / field->size;
-
-        int value = IS_UNOPENED_MASK;
-        Cell *curcell = field->cells[y][x];
-        if (curcell->isopened)
+        for (size_t x = 0; x < field->size; x++)
         {
-            value |= IS_OPEN_MASK;
-        }
+            int value = IS_UNOPENED_MASK;
+            Cell *curcell = field->cells[y][x];
+            if (curcell->isopened)
+            {
+                value |= IS_OPEN_MASK;
+            }
 
-        if (curcell->isbomb)
-        {
-            value |= IS_BOMB_MASK;
-        }
+            if (curcell->isbomb)
+            {
+                value |= IS_BOMB_MASK;
+            }
 
-        if (curcell->isflagged)
-        {
-            value |= IS_FLAGGED_MASK;
-        }
+            if (curcell->isflagged)
+            {
+                value |= IS_FLAGGED_MASK;
+            }
 
-        (*out_masks)[y][x] = value;
+            (*out_masks)[y][x] = value;
+        }
     }
     return 1;
 }
 
-void cell_set_bomb(Field *field, uint32_t x, uint32_t y)
+void cell_set_bomb(Field *field, size_t x, size_t y)
 {
-    if (field == NULL || x < 0 || y < 0)
+    if (field == NULL || x < 0 || y < 0 || x >= field->size || y >= field->size)
         return;
 
     Cell *curcell = field->cells[y][x];
@@ -352,7 +352,7 @@ void cell_set_bomb(Field *field, uint32_t x, uint32_t y)
     }
 }
 
-int alloc_masks(uint32_t ***masks, uint32_t size)
+int alloc_masks(uint32_t ***masks, size_t size)
 {
     if (masks == NULL || size <= 1)
     {
@@ -364,14 +364,14 @@ int alloc_masks(uint32_t ***masks, uint32_t size)
     {
         return 0;
     }
-    for (uint32_t y = 0; y < size; y++)
+    for (size_t y = 0; y < size; y++)
     {
         arr[y] = malloc(sizeof(int) * size);
         if (arr[y] == NULL)
         {
             return 0;
         }
-        for (uint32_t x = 0; x < size; x++)
+        for (size_t x = 0; x < size; x++)
         {
             arr[y][x] = IS_UNOPENED_MASK;
         }

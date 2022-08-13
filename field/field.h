@@ -15,9 +15,9 @@ typedef struct _cell Cell;
 struct _field
 {
     bool gameover;
-    uint32_t size;
-    uint32_t caretx;
-    uint32_t carety;
+    size_t size;
+    size_t caretx;
+    size_t carety;
     // a 2d array containing pointers
     Cell ***cells;
 };
@@ -30,11 +30,11 @@ struct _cell
     uint32_t bombneighbours : 4;
 };
 
-int init_field(Field *field, uint32_t fieldsize, int bombpercentage, uint32_t *seed, uint32_t ***mask);
+int init_field(Field *field, size_t fieldsize, int bombpercentage, uint32_t *seed, uint32_t ***mask);
 void print_field(const Field *field);
 
 int open_cell(Cell *cell);
-void open_neighbour(Field *field, uint32_t x, uint32_t y);
+void open_neighbour(Field *field, size_t x, size_t y);
 int flag_cell(Cell *cell);
 int eval_field(const Field *field);
 void open_field(Field *field);
