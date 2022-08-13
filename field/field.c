@@ -82,7 +82,7 @@ int init_field(Field *field, size_t fieldsize, int bombpercentage, uint32_t *see
 
             Cell *cell = &field->cells[randy][randx];
 
-            if (cell->isbomb)
+            if (is_bomb(cell))
             {
                 continue;
             }
@@ -134,19 +134,19 @@ void print_field(const Field *field)
             Cell *cell = &field->cells[y][x];
             printf("%c", chosen ? '[' : ' ');
 #ifdef _PRETTY
-            if (!cell->isopened)
+            if (!is_open(cell))
             {
                 printf(".");
-                if (cell->isflagged)
+                if (is_flagged(cell))
                 {
                     printf("\033[1D\033[4m\033[97m\033[101mf" ANSI_RESET);
                 }
-                if (field->gameover && cell->isbomb)
+                if (field->gameover && is_bomb(cell))
                 {
                     printf("\033[1D\033[97m\033[41m*" ANSI_RESET);
                 }
             }
-            else if (cell->isbomb)
+            else if (is_bomb(cell))
             {
                 printf("\033[97m\033[41m*" ANSI_RESET);
             }
@@ -155,13 +155,13 @@ void print_field(const Field *field)
                 printf("%s%c" ANSI_RESET, ANSI_COLORS[cell->bombneighbours], cell->bombneighbours == 0 ? ' ' : cell->bombneighbours + 48);
             }
 #else
-            if (cell->isflagged)
+            if (is_flagged(cell))
             {
                 printf("f");
             }
-            else if (cell->isopened)
+            else if (is_open(cell))
             {
-                if (cell->isbomb)
+                if (is_bomb(cell))
                 {
                     printf("*");
                 }
@@ -184,24 +184,24 @@ void print_field(const Field *field)
 int open_cell(Cell *cell)
 {
     // situations in which a cell cannot be opened
-    if (cell == NULL || cell->isflagged || cell->isopened)
+    if (cell == NULL || is_flagged(cell) || is_open(cell))
     {
         return 0;
     }
 
-    cell->isopened = true;
+    cell->status |= IS_OPEN_MASK;
     return 1;
 }
 
 int flag_cell(Cell *cell)
 {
     // situations in which a cell cannot be flagged
-    if (cell == NULL || cell->isopened)
+    if (cell == NULL || is_open(cell))
     {
         return 0;
     }
 
-    cell->isflagged = !cell->isflagged;
+    cell->status ^= IS_FLAGGED_MASK;
     return 1;
 }
 
@@ -214,11 +214,11 @@ void open_neighbour(Field *field, size_t x, size_t y)
 
     // open this one, then recursively open neighbouring cells
     Cell *curcell = &field->cells[y][x];
-    if (curcell->isflagged)
+    if (is_flagged(curcell))
     {
         return;
     }
-    if (curcell->isopened)
+    if (is_open(curcell))
     {
         return;
     }
@@ -245,11 +245,11 @@ int eval_field(const Field *field)
         {
             Cell *curcell = &field->cells[y][x];
 
-            if (curcell->isbomb && !curcell->isflagged)
+            if (is_bomb(curcell) && !is_flagged(curcell))
             {
                 return 0;
             }
-            if (!curcell->isbomb && !curcell->isopened)
+            if (!is_bomb(curcell) && !is_open(curcell))
             {
                 return 0;
             }
@@ -261,12 +261,12 @@ int eval_field(const Field *field)
 
 void open_field(Field *field)
 {
-    for (uint64_t i = 0; i < field->size * field->size; i++)
+    for (size_t y = 0; y < field->size; y++)
     {
-        uint32_t x = i % field->size;
-        uint32_t y = i / field->size;
-
-        field->cells[y][x].isopened = true;
+        for (size_t x = 0; x < field->size; x++)
+        {
+            field->cells[y][x].status |= IS_OPEN_MASK;
+        }
     }
 }
 
@@ -282,24 +282,9 @@ int field_masks(const Field *field, uint32_t ***out_masks)
     {
         for (size_t x = 0; x < field->size; x++)
         {
-            int value = IS_UNOPENED_MASK;
             Cell *curcell = &field->cells[y][x];
-            if (curcell->isopened)
-            {
-                value |= IS_OPEN_MASK;
-            }
 
-            if (curcell->isbomb)
-            {
-                value |= IS_BOMB_MASK;
-            }
-
-            if (curcell->isflagged)
-            {
-                value |= IS_FLAGGED_MASK;
-            }
-
-            (*out_masks)[y][x] = value;
+            (*out_masks)[y][x] = curcell->status;
         }
     }
     return 1;
@@ -312,7 +297,7 @@ void cell_set_bomb(Field *field, size_t x, size_t y)
 
     Cell *curcell = &field->cells[y][x];
 
-    curcell->isbomb = true;
+    curcell->status |= IS_BOMB_MASK;
     if (x > 0)
     {
         field->cells[y][x - 1].bombneighbours++;
@@ -383,4 +368,25 @@ int init_cell(Cell *cell)
     memset(cell, 0, sizeof(Cell));
 
     return 1;
+}
+
+int is_open(const Cell *cell)
+{
+    if (cell == NULL)
+        return 0;
+    return cell->status & IS_OPEN_MASK;
+}
+
+int is_bomb(const Cell *cell)
+{
+    if (cell == NULL)
+        return 0;
+    return cell->status & IS_BOMB_MASK;
+}
+
+int is_flagged(const Cell *cell)
+{
+    if (cell == NULL)
+        return 0;
+    return cell->status & IS_FLAGGED_MASK;
 }

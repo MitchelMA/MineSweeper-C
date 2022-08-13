@@ -168,7 +168,7 @@ int handle_open(Field *field)
     }
 
     // game-over
-    if (curcell->isbomb && curcell->isopened)
+    if (is_bomb(curcell) && is_open(curcell))
     {
 
         return 0;

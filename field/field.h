@@ -24,9 +24,7 @@ struct _field
 
 struct _cell
 {
-    bool isbomb;
-    bool isflagged;
-    bool isopened;
+    uint32_t status : 3;
     uint32_t bombneighbours : 4;
 };
 
@@ -39,5 +37,9 @@ int flag_cell(Cell *cell);
 int eval_field(const Field *field);
 void open_field(Field *field);
 int field_masks(const Field *field, uint32_t ***out_masks);
+
+int is_open(const Cell *cell);
+int is_bomb(const Cell *cell);
+int is_flagged(const Cell *cell);
 
 #endif // __FIELD_H__
