@@ -15,18 +15,18 @@ typedef struct _cell Cell;
 struct _field
 {
     bool gameover;
+    Cell **cells;
     int bombper;
+    uint32_t seed;
     size_t size;
     size_t caretx;
     size_t carety;
-    uint32_t seed;
-    Cell **cells;
 };
 
 struct _cell
 {
-    uint32_t status : 3;
     uint32_t bombneighbours : 4;
+    uint32_t status;
 };
 
 int init_field(Field *field, size_t fieldsize, int bombpercentage, uint32_t *seed, uint32_t ***mask);

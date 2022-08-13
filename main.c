@@ -16,18 +16,21 @@ void handle_arrows(Field *field, int arrow);
 
 int main(void)
 {
-    uint32_t **masks;
     Field myfield;
-    memset(&myfield, 0, sizeof(Field));
+    if (!read_save(&myfield))
+    {
+        printf("kon save niet lezen\n");
+    }
     printf("gameover: %d\n", myfield.gameover);
     printf("bomb-percentage: %d\n", myfield.bombper);
     printf("size: %zd\n", myfield.size);
     printf("caret: (%zd; %zd)\n", myfield.caretx, myfield.carety);
     printf("seed: %d\n", myfield.seed);
-    read_save(&standfieldsize, &standbombper, &seed, &masks);
-    init_field(&myfield, standfieldsize, standbombper, &seed, &masks);
-    printf("size: %zu; bomb-percentage: %i\n", standfieldsize, standbombper);
     print_field(&myfield);
+    if (!write_save(&myfield, 1))
+    {
+        printf("kon speelveld niet opslaan\n");
+    }
     return 0;
 }
 

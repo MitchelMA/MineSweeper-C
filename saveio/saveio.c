@@ -2,21 +2,24 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdbool.h>
+#include <string.h>
 
-int read_save(size_t *fieldsize, int *bombper, uint32_t *seed, uint32_t ***out_masks)
+int read_save(Field *field)
 {
-    if (fieldsize == NULL || bombper == NULL || seed == NULL || out_masks == NULL)
+    if (field == NULL)
     {
         return 0;
     }
-    // get a pointer to the file
+    memset(field, 0, sizeof(Field));
+
     FILE *fp = fopen("save", "r");
     if (fp == NULL)
     {
         return 0;
     }
-    int hassave = false;
-    if (fscanf(fp, "%zu %d %d", fieldsize, bombper, &hassave) == EOF)
+
+    int hassave = 0;
+    if (fscanf(fp, "%zu %d %d", &field->size, &field->bombper, &hassave) == EOF)
     {
         fclose(fp);
         return 0;
@@ -25,51 +28,53 @@ int read_save(size_t *fieldsize, int *bombper, uint32_t *seed, uint32_t ***out_m
     if (!hassave)
     {
         fclose(fp);
-        *out_masks = NULL;
         return 2;
     }
 
-    // read the seed
-    if (fscanf(fp, "%zd", seed) == EOF)
+    if (fscanf(fp, "%d", &field->seed) == EOF)
     {
         fclose(fp);
         return 0;
     }
 
-    // allocate the memory for the array
-    uint32_t **arr = malloc(sizeof(int *) * *fieldsize);
-    if (arr == NULL)
+    // allocate memory for the cells-array
+    field->cells = malloc(sizeof(Cell *) * field->size);
+    if (field->cells == NULL)
     {
         fclose(fp);
         return 0;
     }
-    for (size_t y = 0; y < *fieldsize; y++)
+    for (size_t y = 0; y < field->size; y++)
     {
-        arr[y] = malloc(sizeof(int) * *fieldsize);
-        if (arr[y] == NULL)
+        field->cells[y] = malloc(sizeof(Cell) * field->size);
+        if (field->cells[y] == NULL)
         {
             fclose(fp);
             return 0;
         }
-        for (size_t x = 0; x < *fieldsize; x++)
+
+        for (size_t x = 0; x < field->size; x++)
         {
-            if (fscanf(fp, "%X", &arr[y][x]) == EOF)
+            if (fscanf(fp, "%X", &field->cells[y][x].status) == EOF)
             {
                 fclose(fp);
                 return 0;
             }
-            arr[y][x] ^= *seed;
+            field->cells[y][x].status ^= field->seed;
         }
     }
-
-    *out_masks = arr;
 
     fclose(fp);
     return 1;
 }
 
-int write_save(size_t fieldsize, int bombper, int savefield, uint32_t seed, uint32_t **masks)
+int write_save(const Field *field, int savefield)
 {
+    if (field == NULL)
+    {
+        return 0;
+    }
+
     FILE *fp = fopen("save", "w");
     if (fp == NULL)
     {
@@ -77,14 +82,13 @@ int write_save(size_t fieldsize, int bombper, int savefield, uint32_t seed, uint
     }
 
     char buff[256];
-    sprintf(buff, "%zd %d ", fieldsize, bombper);
+    sprintf(buff, "%zu %d ", field->size, field->bombper);
     if (fputs(buff, fp) == EOF)
     {
         fclose(fp);
         return 0;
     }
-
-    if (savefield && (masks == NULL || seed == 0))
+    if (savefield && (field->cells == NULL || field->seed == 0))
     {
         fputc(0 + '0', fp);
         fclose(fp);
@@ -103,18 +107,18 @@ int write_save(size_t fieldsize, int bombper, int savefield, uint32_t seed, uint
         return 2;
     }
 
-    sprintf(buff, " %d ", seed);
+    sprintf(buff, " %d ", field->seed);
     if (fputs(buff, fp) == EOF)
     {
         fclose(fp);
         return 0;
     }
 
-    for (size_t y = 0; y < fieldsize; y++)
+    for (size_t y = 0; y < field->size; y++)
     {
-        for (size_t x = 0; x < fieldsize; x++)
+        for (size_t x = 0; x < field->size; x++)
         {
-            sprintf(buff, "%X ", masks[y][x] ^ seed);
+            sprintf(buff, "%X ", field->cells[y][x].status ^ field->seed);
             if (fputs(buff, fp) == EOF)
             {
                 fclose(fp);
