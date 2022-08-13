@@ -12,71 +12,62 @@
 #endif // _PRETTY
 
 // LOCAL PROTOTYPES
+
 void cell_set_bomb(Field *field, size_t x, size_t y);
-int alloc_masks(uint32_t ***mask, size_t size);
 int init_cell(Cell *cell);
 
-int init_field(Field *field, size_t fieldsize, int bombpercentage, uint32_t *seed, uint32_t ***masks)
+#define STAND_FIELD_SIZE 30
+#define STAND_BOMB_PER 10
+int init_field(Field *field)
 {
-    if (field == NULL || fieldsize < 4 || bombpercentage >= 100)
+    if (field == NULL)
     {
         return 0;
     }
 
-    field->caretx = 0;
-    field->carety = 0;
-    field->gameover = false;
-    field->size = fieldsize;
-    size_t cellamount = field->size * field->size;
-    size_t bombamount = ((float)bombpercentage / (float)100) * cellamount;
-    if (bombamount == 0)
+    if (field->size < 4)
     {
-        return 0;
+        field->size = STAND_FIELD_SIZE;
     }
 
-    // allocate memory for the 2d cells array
-    field->cells = malloc(sizeof(Cell **) * field->size);
-    for (size_t i = 0; i < field->size; i++)
+    if (field->bombper <= 0)
     {
-        field->cells[i] = malloc(sizeof(Cell *) * field->size);
+        field->bombper = STAND_BOMB_PER;
+    }
+    size_t bombcount = ((float)field->bombper / (float)100) * (field->size * field->size);
+
+    if (field->seed == 0)
+    {
+        uint32_t s = time(0);
+        field->seed = s;
     }
 
-    for (size_t y = 0; y < field->size; y++)
-    {
-        for (size_t x = 0; x < field->size; x++)
-        {
-            if (!init_cell(&field->cells[y][x]))
-            {
-                return 0;
-            }
-        }
-    }
+    srand(field->seed);
 
-    uint32_t s = time(0);
-    if (seed == NULL || *seed == 0)
+    if (field->cells == NULL)
     {
-        srand(s);
-        if (seed != NULL)
-        {
-            *seed = s;
-        }
-    }
-    else
-    {
-        srand(*seed);
-    }
-
-    if (masks == NULL || *masks == NULL)
-    {
-        // allocate memory for the masks
-        if (!alloc_masks(masks, field->size))
+        // allocate memory for the cells
+        field->cells = malloc(sizeof(Cell *) * field->size);
+        if (field->cells == NULL)
         {
             return 0;
         }
-        int times = 0;
-        for (size_t i = 0; i < bombamount;)
+
+        for (size_t y = 0; y < field->size; y++)
         {
-            times++;
+            field->cells[y] = malloc(sizeof(Cell) * field->size);
+            if (field->cells[y] == NULL)
+            {
+                return 0;
+            }
+            for (size_t x = 0; x < field->size; x++)
+            {
+                init_cell(&field->cells[y][x]);
+            }
+        }
+
+        for (size_t i = 0; i < bombcount;)
+        {
             size_t randx = rand() % field->size;
             size_t randy = rand() % field->size;
 
@@ -91,32 +82,22 @@ int init_field(Field *field, size_t fieldsize, int bombpercentage, uint32_t *see
             i++;
         }
     }
+    // correct bomb-neighbour count
     else
     {
         for (size_t y = 0; y < field->size; y++)
         {
             for (size_t x = 0; x < field->size; x++)
             {
-                Cell *curcell = &field->cells[y][x];
-                int curmask = (*masks)[y][x];
-
-                if (curmask & IS_OPEN_MASK)
-                {
-                    open_cell(curcell);
-                }
-
-                if (curmask & IS_BOMB_MASK)
+                Cell *cell = &field->cells[y][x];
+                if (is_bomb(cell))
                 {
                     cell_set_bomb(field, x, y);
-                }
-
-                if (curmask & IS_FLAGGED_MASK)
-                {
-                    flag_cell(curcell);
                 }
             }
         }
     }
+
     return 1;
 }
 
@@ -270,26 +251,6 @@ void open_field(Field *field)
     }
 }
 
-int field_masks(const Field *field, uint32_t ***out_masks)
-{
-    if (field == NULL || out_masks == NULL || *out_masks == NULL)
-    {
-        printf("out-mask or field was NULL\n");
-        return 0;
-    }
-
-    for (size_t y = 0; y < field->size; y++)
-    {
-        for (size_t x = 0; x < field->size; x++)
-        {
-            Cell *curcell = &field->cells[y][x];
-
-            (*out_masks)[y][x] = curcell->status;
-        }
-    }
-    return 1;
-}
-
 void cell_set_bomb(Field *field, size_t x, size_t y)
 {
     if (field == NULL || x < 0 || y < 0 || x >= field->size || y >= field->size)
@@ -332,35 +293,6 @@ void cell_set_bomb(Field *field, size_t x, size_t y)
     {
         field->cells[y + 1][x + 1].bombneighbours++;
     }
-}
-
-int alloc_masks(uint32_t ***masks, size_t size)
-{
-    if (masks == NULL || size <= 1)
-    {
-        return 0;
-    }
-
-    uint32_t **arr = malloc(sizeof(int *) * size);
-    if (arr == NULL)
-    {
-        return 0;
-    }
-    for (size_t y = 0; y < size; y++)
-    {
-        arr[y] = malloc(sizeof(int) * size);
-        if (arr[y] == NULL)
-        {
-            return 0;
-        }
-        for (size_t x = 0; x < size; x++)
-        {
-            arr[y][x] = IS_UNOPENED_MASK;
-        }
-    }
-
-    *masks = arr;
-    return 1;
 }
 
 int init_cell(Cell *cell)

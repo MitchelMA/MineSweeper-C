@@ -29,7 +29,8 @@ struct _cell
     uint32_t status;
 };
 
-int init_field(Field *field, size_t fieldsize, int bombpercentage, uint32_t *seed, uint32_t ***mask);
+// int init_field(Field *field, size_t fieldsize, int bombpercentage, uint32_t *seed, uint32_t ***mask);
+int init_field(Field *field);
 void print_field(const Field *field);
 
 int open_cell(Cell *cell);

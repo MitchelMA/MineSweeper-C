@@ -55,6 +55,7 @@ int read_save(Field *field)
 
         for (size_t x = 0; x < field->size; x++)
         {
+            memset(&field->cells[y][x], 0, sizeof(Cell));
             if (fscanf(fp, "%X", &field->cells[y][x].status) == EOF)
             {
                 fclose(fp);
