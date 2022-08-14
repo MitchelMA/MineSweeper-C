@@ -9,21 +9,7 @@
 int handle_open(Field *field);
 void handle_arrows(Field *field, int arrow);
 
-// int main()
-// {
-//     Field field = {0};
-//     bin_read(&field);
-//     for (size_t y = 0; y < field.size; y++)
-//     {
-//         for (size_t x = 0; x < field.size; x++)
-//         {
-//             printf("(%u : %u) ", field.cells[y][x].bombneighbours, field.cells[y][x].status);
-//         }
-//         printf("\n");
-//     }
-// }
-
-int main2(int argc, char *argv[])
+int main(int argc, char *argv[])
 {
     Field myfield = {0};
     if (argc == 1)
