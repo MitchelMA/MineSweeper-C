@@ -104,7 +104,7 @@ int bin_read(Field *field)
     }
 
     Cell cells[field->size * field->size];
-    int read = fread(cells, sizeof(Cell), sizeof(cells) / sizeof(cells[0]), fp);
+    size_t read = fread(cells, sizeof(Cell), sizeof(cells) / sizeof(cells[0]), fp);
     if (read != field->size * field->size)
     {
         fclose(fp);

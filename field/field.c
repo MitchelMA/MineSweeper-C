@@ -30,7 +30,7 @@ int init_field(Field *field)
         field->size = STAND_FIELD_SIZE;
     }
 
-    if (field->bombper <= 0)
+    if (field->bombper <= 0 || field->bombper > 100)
     {
         field->bombper = STAND_BOMB_PER;
     }
@@ -62,7 +62,10 @@ int init_field(Field *field)
             }
             for (size_t x = 0; x < field->size; x++)
             {
-                init_cell(&field->cells[y][x]);
+                if (!init_cell(&field->cells[y][x]))
+                {
+                    return 0;
+                }
             }
         }
 
@@ -282,7 +285,10 @@ void cell_set_bomb(Field *field, size_t x, size_t y)
 
 int init_cell(Cell *cell)
 {
-    memset(cell, 0, sizeof(Cell));
+    if (memset(cell, 0, sizeof(Cell)) == NULL)
+    {
+        return 0;
+    }
 
     return 1;
 }
