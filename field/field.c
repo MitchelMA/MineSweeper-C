@@ -82,21 +82,6 @@ int init_field(Field *field)
             i++;
         }
     }
-    // correct bomb-neighbour count
-    else
-    {
-        for (size_t y = 0; y < field->size; y++)
-        {
-            for (size_t x = 0; x < field->size; x++)
-            {
-                Cell *cell = &field->cells[y][x];
-                if (is_bomb(cell))
-                {
-                    cell_set_bomb(field, x, y);
-                }
-            }
-        }
-    }
 
     return 1;
 }

@@ -4,79 +4,14 @@
 #include <stdbool.h>
 #include <string.h>
 
-int read_save(Field *field)
-{
-    if (field == NULL)
-    {
-        return 0;
-    }
-    memset(field, 0, sizeof(Field));
-
-    FILE *fp = fopen("save", "r");
-    if (fp == NULL)
-    {
-        return 0;
-    }
-
-    int hassave = 0;
-    if (fscanf(fp, "%zu %d %d", &field->size, &field->bombper, &hassave) == EOF)
-    {
-        fclose(fp);
-        return 0;
-    }
-
-    if (!hassave)
-    {
-        fclose(fp);
-        return 2;
-    }
-
-    if (fscanf(fp, "%d", &field->seed) == EOF)
-    {
-        fclose(fp);
-        return 0;
-    }
-
-    // allocate memory for the cells-array
-    field->cells = malloc(sizeof(Cell *) * field->size);
-    if (field->cells == NULL)
-    {
-        fclose(fp);
-        return 0;
-    }
-    for (size_t y = 0; y < field->size; y++)
-    {
-        field->cells[y] = malloc(sizeof(Cell) * field->size);
-        if (field->cells[y] == NULL)
-        {
-            fclose(fp);
-            return 0;
-        }
-
-        for (size_t x = 0; x < field->size; x++)
-        {
-            memset(&field->cells[y][x], 0, sizeof(Cell));
-            if (fscanf(fp, "%X", &field->cells[y][x].status) == EOF)
-            {
-                fclose(fp);
-                return 0;
-            }
-            field->cells[y][x].status ^= field->seed;
-        }
-    }
-
-    fclose(fp);
-    return 1;
-}
-
-int write_save(const Field *field, int savefield)
+int bin_write(const Field *field, int savefield)
 {
     if (field == NULL)
     {
         return 0;
     }
 
-    FILE *fp = fopen("save", "w");
+    FILE *fp = fopen("save.bin", "wb");
     if (fp == NULL)
     {
         return 0;
@@ -115,16 +50,88 @@ int write_save(const Field *field, int savefield)
         return 0;
     }
 
+    Cell cells[field->size * field->size];
     for (size_t y = 0; y < field->size; y++)
     {
         for (size_t x = 0; x < field->size; x++)
         {
-            sprintf(buff, "%X ", field->cells[y][x].status ^ field->seed);
-            if (fputs(buff, fp) == EOF)
-            {
-                fclose(fp);
-                return 0;
-            }
+            size_t index = y * field->size + x;
+            cells[index] = field->cells[y][x];
+            cells[index].status ^= field->seed;
+        }
+    }
+    size_t written = fwrite(cells, sizeof(Cell), sizeof(cells) / sizeof(cells[0]), fp);
+    if (written != field->size * field->size)
+    {
+        fclose(fp);
+        return 0;
+    }
+
+    fclose(fp);
+    return 1;
+}
+
+int bin_read(Field *field)
+{
+    if (field == NULL)
+    {
+        return 0;
+    }
+
+    FILE *fp = fopen("save.bin", "rb");
+    if (fp == NULL)
+    {
+        return 0;
+    }
+
+    int hassave = 0;
+    if (fscanf(fp, "%zu %d %d", &field->size, &field->bombper, &hassave) == EOF)
+    {
+        fclose(fp);
+        return 0;
+    }
+
+    if (!hassave)
+    {
+        fclose(fp);
+        return 2;
+    }
+
+    if (fscanf(fp, "%d  ", &field->seed) == EOF)
+    {
+        fclose(fp);
+        return 0;
+    }
+
+    Cell cells[field->size * field->size];
+    int read = fread(cells, sizeof(Cell), sizeof(cells) / sizeof(cells[0]), fp);
+    if (read != field->size * field->size)
+    {
+        fclose(fp);
+        return 0;
+    }
+
+    // allocate memory for the field.cells
+    field->cells = malloc(sizeof(Cell *) * field->size);
+    if (field->cells == NULL)
+    {
+        fclose(fp);
+        return 0;
+    }
+
+    for (size_t y = 0; y < field->size; y++)
+    {
+        field->cells[y] = malloc(sizeof(Cell) * field->size);
+        if (field->cells[y] == NULL)
+        {
+            fclose(fp);
+            return 0;
+        }
+        for (size_t x = 0; x < field->size; x++)
+        {
+            size_t index = y * field->size + x;
+            field->cells[y][x] = cells[index];
+            field->cells[y][x].status ^= field->seed;
         }
     }
 

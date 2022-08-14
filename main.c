@@ -14,7 +14,7 @@ int main(int argc, char *argv[])
     Field myfield = {0};
     if (argc == 1)
     {
-        read_save(&myfield);
+        bin_read(&myfield);
     }
     // field size
     if (argc > 1)
@@ -70,7 +70,7 @@ int main(int argc, char *argv[])
                 open_field(&myfield);
                 print_field(&myfield);
                 printf("Game Over!\nJe opende een bom!\n");
-                write_save(&myfield, 0);
+                bin_write(&myfield, 0);
                 break;
             }
 
@@ -89,7 +89,7 @@ int main(int argc, char *argv[])
         if (input == 27 || input == 113)
         {
             // field_masks(&myfield, &masks);
-            write_save(&myfield, 1);
+            bin_write(&myfield, 1);
             break;
         }
 
@@ -108,7 +108,7 @@ int main(int argc, char *argv[])
             open_field(&myfield);
             print_field(&myfield);
             printf("Je hebt gewonnen!\n");
-            write_save(&myfield, 0);
+            bin_write(&myfield, 0);
             break;
         }
     }
