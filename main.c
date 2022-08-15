@@ -54,7 +54,7 @@ int main(int argc, char *argv[])
        // cursor movement
         print_field(&myfield);
 #ifdef _PRETTY
-        printf("\033[%dA", myfield.size);
+        printf("\033[%zuA", myfield.size);
 #endif // _PRETTY
         int arrow = get_arrow_keys(&input);
 
@@ -79,8 +79,7 @@ int main(int argc, char *argv[])
         // flagging
         if (input == 102)
         {
-            Cell *curcell = &myfield.cells[myfield.carety][myfield.caretx];
-            flag_cell(curcell);
+            flag_cell(&myfield.cells[myfield.carety][myfield.caretx]);
 
             goto evaluation;
         }

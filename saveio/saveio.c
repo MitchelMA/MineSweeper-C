@@ -18,7 +18,7 @@ int bin_write(const Field *field, int savefield)
     }
 
     char buff[256];
-    sprintf(buff, "%zu %d ", field->size, field->bombper);
+    sprintf(buff, "%zu %u ", field->size, field->bombper);
     if (fputs(buff, fp) == EOF)
     {
         fclose(fp);
@@ -43,7 +43,7 @@ int bin_write(const Field *field, int savefield)
         return 2;
     }
 
-    sprintf(buff, " %d ", field->seed);
+    sprintf(buff, " %u ", field->seed);
     if (fputs(buff, fp) == EOF)
     {
         fclose(fp);
@@ -57,7 +57,6 @@ int bin_write(const Field *field, int savefield)
         {
             size_t index = y * field->size + x;
             cells[index] = field->cells[y][x];
-            cells[index].status ^= field->seed;
         }
     }
     size_t written = fwrite(cells, sizeof(Cell), sizeof(cells) / sizeof(cells[0]), fp);
@@ -85,7 +84,7 @@ int bin_read(Field *field)
     }
 
     int hassave = 0;
-    if (fscanf(fp, "%zu %d %d", &field->size, &field->bombper, &hassave) == EOF)
+    if (fscanf(fp, "%zu %u %d", &field->size, &field->bombper, &hassave) == EOF)
     {
         fclose(fp);
         return 0;
@@ -97,7 +96,7 @@ int bin_read(Field *field)
         return 2;
     }
 
-    if (fscanf(fp, "%d  ", &field->seed) == EOF)
+    if (fscanf(fp, "%u  ", &field->seed) == EOF)
     {
         fclose(fp);
         return 0;
@@ -131,7 +130,6 @@ int bin_read(Field *field)
         {
             size_t index = y * field->size + x;
             field->cells[y][x] = cells[index];
-            field->cells[y][x].status ^= field->seed;
         }
     }
 
