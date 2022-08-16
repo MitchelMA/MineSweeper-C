@@ -5,9 +5,10 @@
 #include <string.h>
 
 typedef unsigned char _cell_hex_;
+#define INVALID_CELL_HEX 0xFF
 
 _cell_hex_ cto_ch_(const Cell *cell);
-void htoc(const _cell_hex_ _hex_, Cell *out);
+int htoc(const _cell_hex_ _hex_, Cell *out);
 
 int bin_write(const Field *field, int savefield)
 {
@@ -61,7 +62,13 @@ int bin_write(const Field *field, int savefield)
         for (size_t x = 0; x < field->size; x++)
         {
             size_t index = y * field->size + x;
-            hexs[index] = cto_ch_(&field->cells[y][x]);
+            _cell_hex_ hex = cto_ch_(&field->cells[y][x]);
+            if (hex == INVALID_CELL_HEX)
+            {
+                fclose(fp);
+                return 0;
+            }
+            hexs[index] = hex;
         }
     }
 
@@ -137,7 +144,11 @@ int bin_read(Field *field)
         for (size_t x = 0; x < field->size; x++)
         {
             size_t index = y * field->size + x;
-            htoc(hexs[index], &field->cells[y][x]);
+            if (!htoc(hexs[index], &field->cells[y][x]))
+            {
+                fclose(fp);
+                return 0;
+            }
         }
     }
 
@@ -170,7 +181,10 @@ int clear_save(void)
 */
 _cell_hex_ cto_ch_(const Cell *cell)
 {
-    const int nmult = 8;
+    if (cell == NULL)
+    {
+        return INVALID_CELL_HEX;
+    }
     _cell_hex_ hex;
     hex = NEIGHBOUR_VALUE * cell->bombneighbours;
     hex += cell->status;
@@ -186,11 +200,15 @@ _cell_hex_ cto_ch_(const Cell *cell)
     Thus a hexadecimal value of 16 (decimal value of 22) will result in a `Cell` with a status-value of 6 (bomb and flagged),
     and a neighbour-count of 2.
 */
-void htoc(const _cell_hex_ _hex_, Cell *out)
+int htoc(const _cell_hex_ _hex_, Cell *out)
 {
-    const int nmult = 8;
+    if (out == NULL)
+    {
+        return 0;
+    }
     int neighbours = (unsigned int)_hex_ / NEIGHBOUR_VALUE;
     int status = (unsigned int)_hex_ % NEIGHBOUR_VALUE;
     out->bombneighbours = neighbours;
     out->status = status;
+    return 1;
 }
