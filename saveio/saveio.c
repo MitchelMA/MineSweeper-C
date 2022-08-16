@@ -48,7 +48,7 @@ int bin_write(const Field *field, int savefield)
         return 2;
     }
 
-    sprintf(buff, " %u ", field->seed);
+    sprintf(buff, " %u", field->seed);
     if (fputs(buff, fp) == EOF)
     {
         fclose(fp);
@@ -102,7 +102,7 @@ int bin_read(Field *field)
         return 2;
     }
 
-    if (fscanf(fp, "%u  ", &field->seed) == EOF)
+    if (fscanf(fp, "%u", &field->seed) == EOF)
     {
         fclose(fp);
         return 0;
@@ -151,6 +151,7 @@ int clear_save(void)
     return 1;
 }
 
+#define NEIGHBOUR_VALUE 8
 /*
     `Cell` to `_cell_hex_`
     A neighbour counts as 8.
@@ -159,17 +160,19 @@ int clear_save(void)
 
     This will result in in the size of a character,
     that than can get pushed to the .bin file as a single byte.
+    Instead of the 1 bytes + 3 bytes padding before.
+    A 75% decrease in file-size.
 
     Thus
     a `Cell` with a status-value of 6 (is a bomb and is flagged),
     and a neighbour-count of 2, will result in a decimal value of 22.
-    Or a hexadecimal value of 32.
+    Or a hexadecimal value of 16.
 */
 _cell_hex_ cto_ch_(const Cell *cell)
 {
     const int nmult = 8;
     _cell_hex_ hex;
-    hex = nmult * cell->bombneighbours;
+    hex = NEIGHBOUR_VALUE * cell->bombneighbours;
     hex += cell->status;
     return hex;
 }
@@ -180,14 +183,14 @@ _cell_hex_ cto_ch_(const Cell *cell)
     and then dividing it by the neighbour-value, will calculate the neighbour-count.
     The status can get calculated the same way, except that the `rest` value is needed after dividing.
 
-    Thus a hexadecimal value of 32 (decimal value of 22) will result in a `Cell` with a status-value of 6 (bomb and flagged),
+    Thus a hexadecimal value of 16 (decimal value of 22) will result in a `Cell` with a status-value of 6 (bomb and flagged),
     and a neighbour-count of 2.
 */
 void htoc(const _cell_hex_ _hex_, Cell *out)
 {
     const int nmult = 8;
-    int neighbours = (unsigned int)_hex_ / nmult;
-    int status = (unsigned int)_hex_ % nmult;
+    int neighbours = (unsigned int)_hex_ / NEIGHBOUR_VALUE;
+    int status = (unsigned int)_hex_ % NEIGHBOUR_VALUE;
     out->bombneighbours = neighbours;
     out->status = status;
 }

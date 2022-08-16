@@ -37,7 +37,6 @@ void open_neighbour(Field *field, size_t x, size_t y);
 int flag_cell(Cell *cell);
 int eval_field(const Field *field);
 void open_field(Field *field);
-int field_masks(const Field *field, uint32_t ***out_masks);
 
 int is_open(const Cell *cell);
 int is_bomb(const Cell *cell);
