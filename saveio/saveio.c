@@ -5,10 +5,9 @@
 #include <string.h>
 
 typedef unsigned char _cell_hex_;
-#define INVALID_CELL_HEX 0xFF
 
-_cell_hex_ cto_ch_(const Cell *cell);
-int htoc(const _cell_hex_ _hex_, Cell *out);
+int cto_ch_(const Cell *cell, _cell_hex_ *out);
+int _ch_toc(const _cell_hex_ _hex_, Cell *out);
 
 int bin_write(const Field *field, int savefield)
 {
@@ -62,8 +61,8 @@ int bin_write(const Field *field, int savefield)
         for (size_t x = 0; x < field->size; x++)
         {
             size_t index = y * field->size + x;
-            _cell_hex_ hex = cto_ch_(&field->cells[y][x]);
-            if (hex == INVALID_CELL_HEX)
+            _cell_hex_ hex = 0;
+            if (!cto_ch_(&field->cells[y][x], &hex))
             {
                 fclose(fp);
                 return 0;
@@ -144,7 +143,7 @@ int bin_read(Field *field)
         for (size_t x = 0; x < field->size; x++)
         {
             size_t index = y * field->size + x;
-            if (!htoc(hexs[index], &field->cells[y][x]))
+            if (!_ch_toc(hexs[index], &field->cells[y][x]))
             {
                 fclose(fp);
                 return 0;
@@ -158,7 +157,7 @@ int bin_read(Field *field)
 
 int clear_save(void)
 {
-    fclose(fopen("save", "w"));
+    fclose(fopen("save.bin", "w"));
     return 1;
 }
 
@@ -171,24 +170,23 @@ int clear_save(void)
 
     This will result in in the size of a character,
     that than can get pushed to the .bin file as a single byte.
-    Instead of the 1 bytes + 3 bytes padding before.
+    Instead of the 1 byte + 3 bytes padding like before.
     A 75% decrease in file-size.
 
     Thus
     a `Cell` with a status-value of 6 (is a bomb and is flagged),
     and a neighbour-count of 2, will result in a decimal value of 22.
-    Or a hexadecimal value of 16.
+    Or a hexadecimal value of 0x16.
 */
-_cell_hex_ cto_ch_(const Cell *cell)
+int cto_ch_(const Cell *cell, _cell_hex_ *out)
 {
-    if (cell == NULL)
+    if (cell == NULL || out == NULL)
     {
-        return INVALID_CELL_HEX;
+        return 0;
     }
-    _cell_hex_ hex;
-    hex = NEIGHBOUR_VALUE * cell->bombneighbours;
-    hex += cell->status;
-    return hex;
+    *out = NEIGHBOUR_VALUE * cell->bombneighbours;
+    *out += cell->status;
+    return 1;
 }
 
 /*
@@ -197,10 +195,10 @@ _cell_hex_ cto_ch_(const Cell *cell)
     and then dividing it by the neighbour-value, will calculate the neighbour-count.
     The status can get calculated the same way, except that the `rest` value is needed after dividing.
 
-    Thus a hexadecimal value of 16 (decimal value of 22) will result in a `Cell` with a status-value of 6 (bomb and flagged),
+    Thus a hexadecimal value of 0x16 (decimal value of 22) will result in a `Cell` with a status-value of 6 (bomb and flagged),
     and a neighbour-count of 2.
 */
-int htoc(const _cell_hex_ _hex_, Cell *out)
+int _ch_toc(const _cell_hex_ _hex_, Cell *out)
 {
     if (out == NULL)
     {

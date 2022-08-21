@@ -11,6 +11,15 @@
 #define ANSI_RESET "\033[m"
 #endif // _PRETTY
 
+// CELL MASKS
+
+#define IS_UNOPENED_MASK 0x0000 // 0: 0b0000
+#define IS_OPEN_MASK 0x0001     // 1: 0b0001
+#define IS_BOMB_MASK 0x0002     // 2: 0b0010
+#define IS_FLAGGED_MASK 0x0004  // 4: 0b0100
+
+// END CELL MASKS
+
 // LOCAL PROTOTYPES
 
 void cell_set_bomb(Field *field, size_t x, size_t y);
