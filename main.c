@@ -153,6 +153,8 @@ void handle_arrows(Field *field, int arrow)
     {
         if (field->carety > 0)
             field->carety--;
+        else
+            field->carety = field->size - 1;
         break;
     }
 
@@ -161,6 +163,8 @@ void handle_arrows(Field *field, int arrow)
     {
         if (field->caretx < field->size - 1)
             field->caretx++;
+        else
+            field->caretx = 0;
         break;
     }
 
@@ -169,6 +173,8 @@ void handle_arrows(Field *field, int arrow)
     {
         if (field->carety < field->size - 1)
             field->carety++;
+        else
+            field->carety = 0;
         break;
     }
 
@@ -177,6 +183,8 @@ void handle_arrows(Field *field, int arrow)
     {
         if (field->caretx > 0)
             field->caretx--;
+        else
+            field->caretx = field->size - 1;
         break;
     }
     }
