@@ -8,7 +8,7 @@
 #include "field.h"
 
 #ifdef _PRETTY
-#define ANSI_RESET "\033[m"
+#define ANSI_RESET "\x1b[m"
 #endif // _PRETTY
 
 // CELL MASKS
@@ -101,7 +101,7 @@ int init_field(Field *field)
 void print_field(const Field *field)
 {
 #ifdef _PRETTY
-    char *ANSI_COLORS[9] = {"\033[0m", "\033[34m", "\033[32m", "\033[31m", "\033[35m", "\033[90m", "\033[36m", "\033[2m", "\033[33m"};
+    char *ANSI_COLORS[9] = {"\x1b[0m", "\x1b[34m", "\x1b[32m", "\x1b[31m", "\x1b[35m", "\x1b[90m", "\x1b[36m", "\x1b[2m", "\x1b[33m"};
 #endif // _PRETTY
 
     for (size_t y = 0; y < field->size; y++)
@@ -112,25 +112,24 @@ void print_field(const Field *field)
             Cell *cell = &field->cells[y][x];
             printf("%c", chosen ? '[' : ' ');
 #ifdef _PRETTY
-            if (!is_open(cell))
+            if (is_flagged(cell))
             {
-                printf(".");
-                if (is_flagged(cell))
-                {
-                    printf("\033[1D\033[4m\033[97m\033[101mf" ANSI_RESET);
-                }
-                if (field->gameover && is_bomb(cell))
-                {
-                    printf("\033[1D\033[97m\033[41m*" ANSI_RESET);
-                }
+                printf("\x1b[4m\x1b[97m\x1b[101mf" ANSI_RESET);
             }
-            else if (is_bomb(cell))
+            else if (is_open(cell))
             {
-                printf("\033[97m\033[41m*" ANSI_RESET);
+                if (is_bomb(cell))
+                {
+                    printf("\x1b[97\x1b[97m\x1b[41m*" ANSI_RESET);
+                }
+                else
+                {
+                    printf("%s%c" ANSI_RESET, ANSI_COLORS[cell->bombneighbours], cell->bombneighbours == 0 ? ' ' : cell->bombneighbours + 48);
+                }
             }
             else
             {
-                printf("%s%c" ANSI_RESET, ANSI_COLORS[cell->bombneighbours], cell->bombneighbours == 0 ? ' ' : cell->bombneighbours + 48);
+                printf(".");
             }
 #else
             if (is_flagged(cell))

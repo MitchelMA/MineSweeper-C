@@ -118,8 +118,6 @@ int bin_read(Field *field)
     size_t read = fread(hexs, sizeof(_cell_hex_), field->size * field->size, fp);
     if (read != field->size * field->size)
     {
-        printf("Er ging iets mis bij het uitlezen\n");
-        printf("kon maar %d van de %d elementen uitlezen\n", read, field->size * field->size);
         fclose(fp);
         return 0;
     }

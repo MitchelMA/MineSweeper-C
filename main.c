@@ -2,19 +2,37 @@
 #include <stdlib.h>
 #include <stdint.h>
 #include <string.h>
+#include <signal.h>
 #include "field/field.h"
 #include "input/input.h"
 #include "saveio/saveio.h"
 
+static Field myfield;
+
 int handle_open(Field *field);
 void handle_arrows(Field *field, int arrow);
+void handle_crash(int signo);
 
 int main(int argc, char *argv[])
 {
-    Field myfield = {0};
+    // setup for detecting a segfault
+    signal(SIGSEGV, handle_crash);
+
     if (argc == 1)
     {
-        bin_read(&myfield);
+        if (!bin_read(&myfield))
+        {
+            fprintf(stderr, "Er ging iets mis bij het uitlezen van het opslag-bestand\n");
+            get_arrow_keys(NULL);
+#ifdef _PRETTY
+            printf("\x1b[A");
+            for (int i = 0; i < 60; i++)
+            {
+                printf(" ");
+            }
+            printf("\x1b[G");
+#endif // _PRETTY
+        }
     }
     // field size
     if (argc > 1)
@@ -39,7 +57,8 @@ int main(int argc, char *argv[])
 
     if (!init_field(&myfield))
     {
-        printf("Het lukte niet om het speelveld te initializeren\n");
+        fprintf(stderr, "Het lukte niet om het speelveld te initializeren!\n");
+
         return EXIT_FAILURE;
     }
     printf("seed: %d\n", myfield.seed);
@@ -54,7 +73,7 @@ int main(int argc, char *argv[])
        // cursor movement
         print_field(&myfield);
 #ifdef _PRETTY
-        printf("\033[%zuA", myfield.size);
+        printf("\x1b[%zuA", myfield.size);
 #endif // _PRETTY
         int arrow = get_arrow_keys(&input);
 
@@ -70,7 +89,10 @@ int main(int argc, char *argv[])
                 open_field(&myfield);
                 print_field(&myfield);
                 printf("Game Over!\nJe opende een bom!\n");
-                bin_write(&myfield, 0);
+                if (!bin_write(&myfield, 0))
+                {
+                    fprintf(stderr, "Het lukte helaas niet om het speelveld op te slaan\n");
+                }
                 break;
             }
 
@@ -87,8 +109,14 @@ int main(int argc, char *argv[])
         // esc code
         if (input == 27 || input == 113)
         {
-            // field_masks(&myfield, &masks);
-            bin_write(&myfield, 1);
+#ifdef _PRETTY
+            printf("\x1b[%zuB", myfield.size);
+#endif // _PRETTY
+            printf("Bedankt voor het spelen!");
+            if (!bin_write(&myfield, 1))
+            {
+                fprintf(stderr, "Het lukte helaas niet om het speelveld op te slaan\n");
+            }
             break;
         }
 
@@ -107,7 +135,10 @@ int main(int argc, char *argv[])
             open_field(&myfield);
             print_field(&myfield);
             printf("Je hebt gewonnen!\n");
-            bin_write(&myfield, 0);
+            if (!bin_write(&myfield, 0))
+            {
+                fprintf(stderr, "Het lukte helaas niet om het speelveld op te slaan\n");
+            }
             break;
         }
     }
@@ -187,5 +218,22 @@ void handle_arrows(Field *field, int arrow)
             field->caretx = field->size - 1;
         break;
     }
+    }
+}
+
+void handle_crash(int signo)
+{
+    // segfault signal
+    if (signo == SIGSEGV)
+    {
+        fprintf(stderr, "Segfault..., poging tot opslaan van speelveld..\n");
+        if (!bin_write(&myfield, !myfield.gameover))
+        {
+            fprintf(stderr, "Het lukte niet om het speelveld op te slaan\n");
+        }
+        else
+        {
+            printf("Speelveld met succes opgeslagen\n");
+        }
     }
 }

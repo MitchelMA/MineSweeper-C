@@ -5,7 +5,8 @@
 
 int get_arrow_keys(int *val)
 {
-    *val = 0;
+    if (val != NULL)
+        *val = 0;
     int ch = _getch();
 
     if (ch == 0 || ch == 0xE0)
@@ -14,7 +15,8 @@ int get_arrow_keys(int *val)
         fflush(stdin);
         return arr;
     }
-    *val = ch;
+    if (val != NULL)
+        *val = ch;
     fflush(stdin);
     return 0;
 }
