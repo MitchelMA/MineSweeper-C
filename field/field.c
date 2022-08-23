@@ -162,19 +162,22 @@ void print_field(const Field *field)
     char *ANSI_COLORS[9] = {"\x1b[0m", "\x1b[34m", "\x1b[32m", "\x1b[31m", "\x1b[35m", "\x1b[90m", "\x1b[36m", "\x1b[2m", "\x1b[33m"};
 #endif // _PRETTY
 
-    // allocate a buffer to write into so we only have to write once to the stdouto
-    size_t buffer_size = 30 * field->size * field->size + 1;
+// allocate a buffer to write into so we only have to write once to the stdout
+#ifdef _PRETTY
+    size_t buffer_size = 25 * field->size * field->size + 1;
+#else
+    size_t buffer_size = 4 * field->size * field->size + 1;
+#endif // _PRETTY
     //                                                   ^ +1 for the null-terminator ('\0')
     char *buffer = calloc(buffer_size, sizeof(char));
-
     size_t buffer_index = 0;
+
     for (size_t y = 0; y < field->size; y++)
     {
         for (size_t x = 0; x < field->size; x++)
         {
             bool chosen = x == field->caretx && y == field->carety;
             Cell *cell = &field->cells[y][x];
-            // printf("%c", chosen ? '[' : ' ');
             buffer[buffer_index++] = chosen ? '[' : ' ';
 #ifdef _PRETTY
             if (is_flagged(cell))
@@ -200,28 +203,26 @@ void print_field(const Field *field)
 #else
             if (is_flagged(cell))
             {
-                printf("f");
+                buffer[buffer_index++] = 'f';
             }
             else if (is_open(cell))
             {
                 if (is_bomb(cell))
                 {
-                    printf("*");
+                    buffer[buffer_index++] = '*';
                 }
                 else
                 {
-                    printf("%c", cell->bombneighbours == 0 ? ' ' : cell->bombneighbours + 48);
+                    buffer[buffer_index++] = cell->bombneighbours == 0 ? ' ' : cell->bombneighbours + 48;
                 }
             }
             else
             {
-                printf(".");
+                buffer[buffer_index++] = '.';
             }
 #endif // _PRETTY
             buffer[buffer_index++] = chosen ? ']' : ' ';
-            // printf("%c", chosen ? ']' : ' ');
         }
-        // printf("\n");
         buffer[buffer_index++] = '\n';
     }
 
