@@ -60,6 +60,22 @@
     BUFFER[START_INDEX++] = '*';            \
     ANSI_ESCAPE_TO_BUFFER(BUFFER, START_INDEX)
 
+#define NONBOMB_TO_BUFFER(BUFFER, START_INDEX, NEIGHBOURS, ESCAPE_ARRAY) \
+    BUFFER[START_INDEX++] = '\x1b';                                      \
+    BUFFER[START_INDEX++] = '[';                                         \
+    BUFFER[START_INDEX++] = ESCAPE_ARRAY[NEIGHBOURS][2];                 \
+    if (ESCAPE_ARRAY[NEIGHBOURS][3] == 'm')                              \
+    {                                                                    \
+        BUFFER[START_INDEX++] = 'm';                                     \
+    }                                                                    \
+    else                                                                 \
+    {                                                                    \
+        BUFFER[START_INDEX++] = ESCAPE_ARRAY[NEIGHBOURS][3];             \
+        BUFFER[START_INDEX++] = 'm';                                     \
+    }                                                                    \
+    BUFFER[START_INDEX++] = NEIGHBOURS == 0 ? ' ' : NEIGHBOURS + 48;     \
+    ANSI_ESCAPE_TO_BUFFER(BUFFER, START_INDEX)
+
 // END OF MACROS
 
 // LOCAL PROTOTYPES
@@ -173,30 +189,12 @@ void print_field(const Field *field)
                 }
                 else
                 {
-                    // printf("%s%c" ANSI_RESET, ANSI_COLORS[cell->bombneighbours], cell->bombneighbours == 0 ? ' ' : cell->bombneighbours + 48);
                     uint32_t neighbour_count = cell->bombneighbours;
-
-                    buffer[buffer_index++] = '\x1b';
-                    buffer[buffer_index++] = '[';
-                    buffer[buffer_index++] = ANSI_COLORS[neighbour_count][2];
-                    if (ANSI_COLORS[neighbour_count][3] == 'm')
-                    {
-                        buffer[buffer_index++] = 'm';
-                    }
-                    else
-                    {
-                        buffer[buffer_index++] = ANSI_COLORS[neighbour_count][3];
-                        buffer[buffer_index++] = 'm';
-                    }
-
-                    buffer[buffer_index++] = neighbour_count == 0 ? ' ' : neighbour_count + 48;
-
-                    ANSI_ESCAPE_TO_BUFFER(buffer, buffer_index)
+                    NONBOMB_TO_BUFFER(buffer, buffer_index, neighbour_count, ANSI_COLORS)
                 }
             }
             else
             {
-                // printf(".");
                 buffer[buffer_index++] = '.';
             }
 #else
