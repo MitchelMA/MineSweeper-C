@@ -20,6 +20,48 @@
 
 // END CELL MASKS
 
+// WRITE_TO_BUFFER_MACROS
+
+#define ANSI_ESCAPE_TO_BUFFER(BUFFER, START_INDEX) \
+    BUFFER[START_INDEX++] = '\x1b';                \
+    BUFFER[START_INDEX++] = '[';                   \
+    BUFFER[START_INDEX++] = 'm';
+
+#define FLAG_TO_BUFFER(BUFFER, START_INDEX) \
+    BUFFER[START_INDEX++] = '\x1b';         \
+    BUFFER[START_INDEX++] = '[';            \
+    BUFFER[START_INDEX++] = '4';            \
+    BUFFER[START_INDEX++] = 'm';            \
+    BUFFER[START_INDEX++] = '\x1b';         \
+    BUFFER[START_INDEX++] = '[';            \
+    BUFFER[START_INDEX++] = '9';            \
+    BUFFER[START_INDEX++] = '7';            \
+    BUFFER[START_INDEX++] = 'm';            \
+    BUFFER[START_INDEX++] = '\x1b';         \
+    BUFFER[START_INDEX++] = '[';            \
+    BUFFER[START_INDEX++] = '1';            \
+    BUFFER[START_INDEX++] = '0';            \
+    BUFFER[START_INDEX++] = '1';            \
+    BUFFER[START_INDEX++] = 'm';            \
+    BUFFER[START_INDEX++] = 'f';            \
+    ANSI_ESCAPE_TO_BUFFER(BUFFER, START_INDEX)
+
+#define BOMB_TO_BUFFER(BUFFER, START_INDEX) \
+    BUFFER[START_INDEX++] = '\x1b';         \
+    BUFFER[START_INDEX++] = '[';            \
+    BUFFER[START_INDEX++] = '9';            \
+    BUFFER[START_INDEX++] = '7';            \
+    BUFFER[START_INDEX++] = 'm';            \
+    BUFFER[START_INDEX++] = '\x1b';         \
+    BUFFER[START_INDEX++] = '[';            \
+    BUFFER[START_INDEX++] = '4';            \
+    BUFFER[START_INDEX++] = '1';            \
+    BUFFER[START_INDEX++] = 'm';            \
+    BUFFER[START_INDEX++] = '*';            \
+    ANSI_ESCAPE_TO_BUFFER(BUFFER, START_INDEX)
+
+// END OF MACROS
+
 // LOCAL PROTOTYPES
 
 void cell_set_bomb(Field *field, size_t x, size_t y);
@@ -104,32 +146,58 @@ void print_field(const Field *field)
     char *ANSI_COLORS[9] = {"\x1b[0m", "\x1b[34m", "\x1b[32m", "\x1b[31m", "\x1b[35m", "\x1b[90m", "\x1b[36m", "\x1b[2m", "\x1b[33m"};
 #endif // _PRETTY
 
+    // allocate a buffer to write into so we only have to write once to the stdouto
+    size_t buffer_size = 30 * field->size * field->size + 1;
+    //                                                   ^ +1 for the null-terminator ('\0')
+    char *buffer = calloc(buffer_size, sizeof(char));
+
+    size_t buffer_index = 0;
     for (size_t y = 0; y < field->size; y++)
     {
         for (size_t x = 0; x < field->size; x++)
         {
             bool chosen = x == field->caretx && y == field->carety;
             Cell *cell = &field->cells[y][x];
-            printf("%c", chosen ? '[' : ' ');
+            // printf("%c", chosen ? '[' : ' ');
+            buffer[buffer_index++] = chosen ? '[' : ' ';
 #ifdef _PRETTY
             if (is_flagged(cell))
             {
-                printf("\x1b[4m\x1b[97m\x1b[101mf" ANSI_RESET);
+                FLAG_TO_BUFFER(buffer, buffer_index);
             }
             else if (is_open(cell))
             {
                 if (is_bomb(cell))
                 {
-                    printf("\x1b[97\x1b[97m\x1b[41m*" ANSI_RESET);
+                    BOMB_TO_BUFFER(buffer, buffer_index);
                 }
                 else
                 {
-                    printf("%s%c" ANSI_RESET, ANSI_COLORS[cell->bombneighbours], cell->bombneighbours == 0 ? ' ' : cell->bombneighbours + 48);
+                    // printf("%s%c" ANSI_RESET, ANSI_COLORS[cell->bombneighbours], cell->bombneighbours == 0 ? ' ' : cell->bombneighbours + 48);
+                    uint32_t neighbour_count = cell->bombneighbours;
+
+                    buffer[buffer_index++] = '\x1b';
+                    buffer[buffer_index++] = '[';
+                    buffer[buffer_index++] = ANSI_COLORS[neighbour_count][2];
+                    if (ANSI_COLORS[neighbour_count][3] == 'm')
+                    {
+                        buffer[buffer_index++] = 'm';
+                    }
+                    else
+                    {
+                        buffer[buffer_index++] = ANSI_COLORS[neighbour_count][3];
+                        buffer[buffer_index++] = 'm';
+                    }
+
+                    buffer[buffer_index++] = neighbour_count == 0 ? ' ' : neighbour_count + 48;
+
+                    ANSI_ESCAPE_TO_BUFFER(buffer, buffer_index)
                 }
             }
             else
             {
-                printf(".");
+                // printf(".");
+                buffer[buffer_index++] = '.';
             }
 #else
             if (is_flagged(cell))
@@ -152,10 +220,17 @@ void print_field(const Field *field)
                 printf(".");
             }
 #endif // _PRETTY
-            printf("%c", chosen ? ']' : ' ');
+            buffer[buffer_index++] = chosen ? ']' : ' ';
+            // printf("%c", chosen ? ']' : ' ');
         }
-        printf("\n");
+        // printf("\n");
+        buffer[buffer_index++] = '\n';
     }
+
+    // print the buffer once to the stdout
+    printf("%s", buffer);
+    // free the memory of the buffer
+    free(buffer);
 }
 
 int open_cell(Cell *cell)
