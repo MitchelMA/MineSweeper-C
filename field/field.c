@@ -164,11 +164,11 @@ void print_field(const Field *field)
 
 // allocate a buffer to write into so we only have to write once to the stdout
 #ifdef _PRETTY
-    size_t buffer_size = 25 * field->size * field->size + 1;
+    size_t buffer_size = 21 * field->size * field->size + field->size + 1;
 #else
-    size_t buffer_size = 4 * field->size * field->size + 1;
-#endif // _PRETTY
-    //                                                   ^ +1 for the null-terminator ('\0')
+    size_t buffer_size = 3 * field->size * field->size + field->size + 1;
+#endif // _PRETTY0
+    //                                                   ^ voor '\n'   ^ +1 for the null-terminator ('\0')
     char *buffer = calloc(buffer_size, sizeof(char));
     size_t buffer_index = 0;
 
