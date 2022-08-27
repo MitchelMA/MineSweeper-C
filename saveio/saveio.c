@@ -61,13 +61,11 @@ int bin_write(const Field *field, int savefield)
         for (size_t x = 0; x < field->size; x++)
         {
             size_t index = y * field->size + x;
-            _cell_hex_ hex = 0;
-            if (!cto_ch_(&field->cells[y][x], &hex))
+            if (!cto_ch_(&field->cells[y][x], &hexs[index]))
             {
                 fclose(fp);
                 return 0;
             }
-            hexs[index] = hex;
         }
     }
 

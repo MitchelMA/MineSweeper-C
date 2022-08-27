@@ -80,9 +80,10 @@ int main(int argc, char *argv[])
         // enter or space press
         if (input == 13 || input == 32)
         {
-            if (!handle_open(&myfield))
+            handle_open(&myfield);
+
+            if (myfield.gameover)
             {
-                myfield.gameover = true;
 #ifndef _PRETTY
                 clrscrn();
 #endif // _PRETTY
@@ -94,9 +95,9 @@ int main(int argc, char *argv[])
                     fprintf(stderr, "Het lukte helaas niet om het speelveld op te slaan\n");
                 }
                 break;
-            }
 
-            goto evaluation;
+                goto evaluation;
+            }
         }
         // flagging
         if (input == 102)
@@ -156,19 +157,12 @@ int main(int argc, char *argv[])
 int handle_open(Field *field)
 {
     Cell *curcell = &field->cells[field->carety][field->caretx];
-    if (curcell->bombneighbours == 0)
-    {
-        open_neighbour(field, field->caretx, field->carety);
-    }
-    else
-    {
-        open_cell(curcell);
-    }
+    open_series(field, field->caretx, field->carety);
 
     // game-over
     if (is_bomb(curcell) && is_open(curcell))
     {
-
+        field->gameover = true;
         return 0;
     }
 

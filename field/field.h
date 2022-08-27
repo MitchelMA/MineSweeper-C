@@ -27,8 +27,7 @@ struct _cell
 int init_field(Field *field);
 void print_field(const Field *field);
 
-int open_cell(Cell *cell);
-void open_neighbour(Field *field, size_t x, size_t y);
+void open_series(Field *field, size_t x, size_t y);
 int flag_cell(Cell *cell);
 int eval_field(const Field *field);
 void open_field(Field *field);

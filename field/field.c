@@ -7,10 +7,6 @@
 
 #include "field.h"
 
-#ifdef _PRETTY
-#define ANSI_RESET "\x1b[m"
-#endif // _PRETTY
-
 // CELL MASKS
 
 #define IS_UNOPENED_MASK 0x0000 // 0: 0b0000
@@ -20,6 +16,7 @@
 
 // END CELL MASKS
 
+#ifdef _PRETTY
 // WRITE_TO_BUFFER_MACROS
 
 #define ANSI_ESCAPE_TO_BUFFER(BUFFER, START_INDEX) \
@@ -78,10 +75,12 @@
 
 // END OF MACROS
 
+#endif // _PRETTY
+
 // LOCAL PROTOTYPES
 
+int open_cell(Cell *cell);
 void cell_set_bomb(Field *field, size_t x, size_t y);
-int init_cell(Cell *cell);
 
 #define STAND_FIELD_SIZE 30
 #define STAND_BOMB_PER 10
@@ -103,54 +102,45 @@ int init_field(Field *field)
     }
     size_t bombcount = ((float)field->bombper / (float)100) * (field->size * field->size);
 
-    if (field->seed == 0)
-    {
-        uint32_t s = time(0);
-        field->seed = s;
-    }
+    field->seed == 0 ? field->seed = time(0) : false;
 
     srand(field->seed);
 
+    if (field->cells != NULL)
+    {
+        return 1;
+    }
+
+    // allocate memory for the cells
+    field->cells = calloc(field->size, sizeof(Cell *));
     if (field->cells == NULL)
     {
-        // allocate memory for the cells
-        field->cells = malloc(sizeof(Cell *) * field->size);
-        if (field->cells == NULL)
+        return 0;
+    }
+
+    for (size_t y = 0; y < field->size; y++)
+    {
+        field->cells[y] = calloc(field->size, sizeof(Cell));
+        if (field->cells[y] == NULL)
         {
             return 0;
         }
+    }
 
-        for (size_t y = 0; y < field->size; y++)
+    for (size_t i = 0; i < bombcount;)
+    {
+        size_t randx = rand() % field->size;
+        size_t randy = rand() % field->size;
+
+        Cell *cell = &field->cells[randy][randx];
+
+        if (is_bomb(cell))
         {
-            field->cells[y] = malloc(sizeof(Cell) * field->size);
-            if (field->cells[y] == NULL)
-            {
-                return 0;
-            }
-            for (size_t x = 0; x < field->size; x++)
-            {
-                if (!init_cell(&field->cells[y][x]))
-                {
-                    return 0;
-                }
-            }
+            continue;
         }
 
-        for (size_t i = 0; i < bombcount;)
-        {
-            size_t randx = rand() % field->size;
-            size_t randy = rand() % field->size;
-
-            Cell *cell = &field->cells[randy][randx];
-
-            if (is_bomb(cell))
-            {
-                continue;
-            }
-
-            cell_set_bomb(field, randx, randy);
-            i++;
-        }
+        cell_set_bomb(field, randx, randy);
+        i++;
     }
 
     return 1;
@@ -168,7 +158,7 @@ void print_field(const Field *field)
 #else
     size_t buffer_size = 3 * field->size * field->size + field->size + 1;
 #endif // _PRETTY0
-    //                                                   ^ voor '\n'   ^ +1 for the null-terminator ('\0')
+    //                                                   ^ for '\n'    ^ +1 for the null-terminator ('\0')
     char *buffer = calloc(buffer_size, sizeof(char));
     size_t buffer_index = 0;
 
@@ -256,7 +246,7 @@ int flag_cell(Cell *cell)
     return 1;
 }
 
-void open_neighbour(Field *field, size_t x, size_t y)
+void open_series(Field *field, size_t x, size_t y)
 {
     if (field == NULL || x >= field->size || y >= field->size || x < 0 || y < 0)
     {
@@ -278,14 +268,14 @@ void open_neighbour(Field *field, size_t x, size_t y)
     if (curcell->bombneighbours > 0)
         return;
 
-    open_neighbour(field, x - 1, y - 1);
-    open_neighbour(field, x, y - 1);
-    open_neighbour(field, x + 1, y - 1);
-    open_neighbour(field, x - 1, y);
-    open_neighbour(field, x + 1, y);
-    open_neighbour(field, x - 1, y + 1);
-    open_neighbour(field, x, y + 1);
-    open_neighbour(field, x + 1, y + 1);
+    open_series(field, x - 1, y - 1);
+    open_series(field, x, y - 1);
+    open_series(field, x + 1, y - 1);
+    open_series(field, x - 1, y);
+    open_series(field, x + 1, y);
+    open_series(field, x - 1, y + 1);
+    open_series(field, x, y + 1);
+    open_series(field, x + 1, y + 1);
 }
 
 int eval_field(const Field *field)
@@ -363,16 +353,6 @@ void cell_set_bomb(Field *field, size_t x, size_t y)
     {
         field->cells[y + 1][x + 1].bombneighbours++;
     }
-}
-
-int init_cell(Cell *cell)
-{
-    if (memset(cell, 0, sizeof(Cell)) == NULL)
-    {
-        return 0;
-    }
-
-    return 1;
 }
 
 int is_open(const Cell *cell)
