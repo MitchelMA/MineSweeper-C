@@ -4,10 +4,7 @@
 #include <stdbool.h>
 #include <string.h>
 
-typedef unsigned char _cell_hex_;
-
-int cto_ch_(const Cell *cell, _cell_hex_ *out);
-int _ch_toc(const _cell_hex_ _hex_, Cell *out);
+typedef unsigned char byte;
 
 int bin_write(const Field *field, int savefield)
 {
@@ -55,8 +52,8 @@ int bin_write(const Field *field, int savefield)
         return 0;
     }
 
-    _cell_hex_ *hexs = malloc(sizeof(_cell_hex_) * field->size * field->size);
-    if (hexs == NULL)
+    byte *bytes = malloc(sizeof(byte) * field->size * field->size);
+    if (bytes == NULL)
     {
         fclose(fp);
         return 0;
@@ -66,17 +63,12 @@ int bin_write(const Field *field, int savefield)
         for (size_t x = 0; x < field->size; x++)
         {
             size_t index = y * field->size + x;
-            if (!cto_ch_(&field->cells[y][x], &hexs[index]))
-            {
-                fclose(fp);
-                free(hexs);
-                return 0;
-            }
+            bytes[index] = *(byte *)&field->cells[y][x];
         }
     }
 
-    size_t written = fwrite(hexs, sizeof(_cell_hex_), field->size * field->size, fp);
-    free(hexs);
+    size_t written = fwrite(bytes, sizeof(byte), field->size * field->size, fp);
+    free(bytes);
     if (written != field->size * field->size)
     {
         fclose(fp);
@@ -119,17 +111,17 @@ int bin_read(Field *field)
         return 0;
     }
 
-    _cell_hex_ *hexs = malloc(sizeof(_cell_hex_) * field->size * field->size);
-    if (hexs == NULL)
+    byte *bytes = malloc(sizeof(byte) * field->size * field->size);
+    if (bytes == NULL)
     {
         fclose(fp);
         return 0;
     }
-    size_t read = fread(hexs, sizeof(_cell_hex_), field->size * field->size, fp);
+    size_t read = fread(bytes, sizeof(byte), field->size * field->size, fp);
     if (read != field->size * field->size)
     {
         fclose(fp);
-        free(hexs);
+        free(bytes);
         return 0;
     }
 
@@ -138,7 +130,7 @@ int bin_read(Field *field)
     if (field->cells == NULL)
     {
         fclose(fp);
-        free(hexs);
+        free(bytes);
         return 0;
     }
 
@@ -148,78 +140,23 @@ int bin_read(Field *field)
         if (field->cells[y] == NULL)
         {
             fclose(fp);
-            free(hexs);
+            free(bytes);
             return 0;
         }
         for (size_t x = 0; x < field->size; x++)
         {
             size_t index = y * field->size + x;
-            if (!_ch_toc(hexs[index], &field->cells[y][x]))
-            {
-                fclose(fp);
-                free(hexs);
-                return 0;
-            }
+            field->cells[y][x] = *(Cell *)(bytes + index);
         }
     }
 
     fclose(fp);
-    free(hexs);
+    free(bytes);
     return 1;
 }
 
 int clear_save(void)
 {
     fclose(fopen("save.bin", "w"));
-    return 1;
-}
-
-#define NEIGHBOUR_VALUE 8
-/*
-    `Cell` to `_cell_hex_`
-    A neighbour counts as 8.
-    After calculating the correct value corresponding to the neighbour count,
-    the status can just be added as a value.
-
-    This will result in in the size of a character,
-    that than can get pushed to the .bin file as a single byte.
-    Instead of the 1 byte + 3 bytes padding like before.
-    A 75% decrease in file-size.
-
-    Thus
-    a `Cell` with a status-value of 6 (is a bomb and is flagged),
-    and a neighbour-count of 2, will result in a decimal value of 22.
-    Or a hexadecimal value of 0x16.
-*/
-int cto_ch_(const Cell *cell, _cell_hex_ *out)
-{
-    if (cell == NULL || out == NULL)
-    {
-        return 0;
-    }
-    *out = NEIGHBOUR_VALUE * cell->bombneighbours;
-    *out += cell->status;
-    return 1;
-}
-
-/*
-    `_cell_hex_` to `Cell`
-    By casting the` _hex_` to an unsigned integer,
-    and then dividing it by the neighbour-value, will calculate the neighbour-count.
-    The status can get calculated the same way, except that the `rest` value is needed after dividing.
-
-    Thus a hexadecimal value of 0x16 (decimal value of 22) will result in a `Cell` with a status-value of 6 (bomb and flagged),
-    and a neighbour-count of 2.
-*/
-int _ch_toc(const _cell_hex_ _hex_, Cell *out)
-{
-    if (out == NULL)
-    {
-        return 0;
-    }
-    int neighbours = (unsigned int)_hex_ / NEIGHBOUR_VALUE;
-    int status = (unsigned int)_hex_ % NEIGHBOUR_VALUE;
-    out->bombneighbours = neighbours;
-    out->status = status;
     return 1;
 }
