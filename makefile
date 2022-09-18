@@ -22,7 +22,8 @@ build:
 	$(CC) $(CFLAGS) -o minesweeper $(OBJS)
 	@echo $(CFLAGS)
 
-$(OBJS): %.o : %.c
+$(OBJS): clean
+$(OBJS):%.o : %.c
 
 clean:
 	del $(OBJS)

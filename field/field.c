@@ -112,7 +112,7 @@ int init_field(Field *field)
     }
 
     // allocate memory for the cells
-    field->cells = calloc(field->size, sizeof(Cell *));
+    field->cells = malloc(sizeof(Cell *) * field->size);
     if (field->cells == NULL)
     {
         return 0;
@@ -159,7 +159,7 @@ void print_field(const Field *field)
     size_t buffer_size = 3 * field->size * field->size + field->size + 1;
 #endif // _PRETTY0
     //                                                   ^ for '\n'    ^ +1 for the null-terminator ('\0')
-    char *buffer = calloc(buffer_size, sizeof(char));
+    char *buffer = malloc(sizeof(char) * buffer_size);
     size_t buffer_index = 0;
 
     for (size_t y = 0; y < field->size; y++)
@@ -215,6 +215,7 @@ void print_field(const Field *field)
         }
         buffer[buffer_index++] = '\n';
     }
+    buffer[buffer_index++] = '\0';
 
     // print the buffer once to the stdout
     printf("%s", buffer);

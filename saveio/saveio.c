@@ -55,7 +55,12 @@ int bin_write(const Field *field, int savefield)
         return 0;
     }
 
-    _cell_hex_ hexs[field->size * field->size];
+    _cell_hex_ *hexs = malloc(sizeof(_cell_hex_) * field->size * field->size);
+    if (hexs == NULL)
+    {
+        fclose(fp);
+        return 0;
+    }
     for (size_t y = 0; y < field->size; y++)
     {
         for (size_t x = 0; x < field->size; x++)
@@ -64,12 +69,14 @@ int bin_write(const Field *field, int savefield)
             if (!cto_ch_(&field->cells[y][x], &hexs[index]))
             {
                 fclose(fp);
+                free(hexs);
                 return 0;
             }
         }
     }
 
     size_t written = fwrite(hexs, sizeof(_cell_hex_), field->size * field->size, fp);
+    free(hexs);
     if (written != field->size * field->size)
     {
         fclose(fp);
@@ -112,11 +119,17 @@ int bin_read(Field *field)
         return 0;
     }
 
-    _cell_hex_ hexs[field->size * field->size];
+    _cell_hex_ *hexs = malloc(sizeof(_cell_hex_) * field->size * field->size);
+    if (hexs == NULL)
+    {
+        fclose(fp);
+        return 0;
+    }
     size_t read = fread(hexs, sizeof(_cell_hex_), field->size * field->size, fp);
     if (read != field->size * field->size)
     {
         fclose(fp);
+        free(hexs);
         return 0;
     }
 
@@ -125,6 +138,7 @@ int bin_read(Field *field)
     if (field->cells == NULL)
     {
         fclose(fp);
+        free(hexs);
         return 0;
     }
 
@@ -134,6 +148,7 @@ int bin_read(Field *field)
         if (field->cells[y] == NULL)
         {
             fclose(fp);
+            free(hexs);
             return 0;
         }
         for (size_t x = 0; x < field->size; x++)
@@ -142,12 +157,14 @@ int bin_read(Field *field)
             if (!_ch_toc(hexs[index], &field->cells[y][x]))
             {
                 fclose(fp);
+                free(hexs);
                 return 0;
             }
         }
     }
 
     fclose(fp);
+    free(hexs);
     return 1;
 }
 
