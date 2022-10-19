@@ -2,7 +2,8 @@
 #define __FIELD_H__
 
 #include <stdbool.h>
-#include <stdint.h>
+#include <stddef.h> // for the size_t
+#include <stdint.h> // for the uint32_t
 
 typedef struct _field Field;
 typedef struct _cell Cell;

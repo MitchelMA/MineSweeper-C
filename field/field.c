@@ -5,7 +5,7 @@
 #include <conio.h>
 #include <string.h>
 
-#include "field.h"
+#include "./field.h"
 
 // CELL MASKS
 

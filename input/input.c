@@ -1,7 +1,7 @@
 #include <conio.h>
 #include <stdlib.h>
 #include <stdio.h>
-#include "input.h"
+#include "./input.h"
 
 int get_arrow_keys(int *val)
 {
