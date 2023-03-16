@@ -1,3 +1,4 @@
+#define __STDC_WANT_LIB_EXT1__ 1
 #include "./saveio.h"
 #include <stdio.h>
 #include <stdlib.h>
@@ -5,6 +6,7 @@
 #include <string.h>
 
 typedef unsigned char byte;
+static FILE *fp;
 
 int bin_write(const Field *field, int savefield)
 {
@@ -13,7 +15,7 @@ int bin_write(const Field *field, int savefield)
         return 0;
     }
 
-    FILE *fp = fopen("save.bin", "wb");
+    fopen_s(&fp, "save.bin", "wb");
     if (fp == NULL)
     {
         return 0;
@@ -86,14 +88,14 @@ int bin_read(Field *field)
         return 0;
     }
 
-    FILE *fp = fopen("save.bin", "rb");
+    fopen_s(&fp, "save.bin", "rb");
     if (fp == NULL)
     {
         return 0;
     }
 
     int hassave = 0;
-    if (fscanf(fp, "%zu %u %d", &field->size, &field->bombper, &hassave) == EOF)
+    if (fscanf_s(fp, "%zu %u %d", &field->size, &field->bombper, &hassave) == EOF)
     {
         fclose(fp);
         return 0;
@@ -105,7 +107,7 @@ int bin_read(Field *field)
         return 2;
     }
 
-    if (fscanf(fp, "%u", &field->seed) == EOF)
+    if (fscanf_s(fp, "%u", &field->seed) == EOF)
     {
         fclose(fp);
         return 0;
@@ -157,6 +159,7 @@ int bin_read(Field *field)
 
 int clear_save(void)
 {
-    fclose(fopen("save.bin", "w"));
+    fopen_s(&fp, "save.bin", "w");
+    fclose(fp);
     return 1;
 }
